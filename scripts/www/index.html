@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中移物联 · 万能配置台 v13</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+        --primary: #3399dd;
+        --line: #c8d8e8;
+        --muted: #5a7a9a;
+        --title: #1a3550;
+        --danger: #e05555;
+        --ok: #4caf50;
+        --warn: #ff9800;
+        --bg: #dce8f5;
+        --surface: #ffffff;
+        --surface-2: #fbfdff;
+        --surface-3: #eef4fa;
+        --accent-soft: #e6f0fb;
+        --accent-ink: #1565c0;
+        --card-border: #eef3f9;
+        --item-border: #e8f0f7;
+        --text-faint: #8ca3b8;
+        --switch-off: #c0d0e0;
+    }
+    /* 翡翠青绿 */
+    body[data-theme="mint"] {
+        --primary: #1fae7a;
+        --line: #bfe2d3;
+        --muted: #4f7a68;
+        --title: #14412f;
+        --bg: #e3f4eb;
+        --surface: #ffffff;
+        --surface-2: #f3fbf7;
+        --surface-3: #e5f6ee;
+        --accent-soft: #d3efe1;
+        --accent-ink: #0d7a52;
+        --card-border: #d9efe3;
+        --item-border: #cfe9dc;
+        --text-faint: #7aa592;
+        --switch-off: #beddcd;
+    }
+    /* 暗黑深空 */
+    body[data-theme="dark"] {
+        --primary: #4aa8ff;
+        --line: #2c3a55;
+        --muted: #93a3bd;
+        --title: #e6edf7;
+        --bg: #0a1020;
+        --surface: #141c30;
+        --surface-2: #1a2338;
+        --surface-3: #232d47;
+        --accent-soft: #23304a;
+        --accent-ink: #7ab8ff;
+        --card-border: #232d47;
+        --item-border: #2a3550;
+        --text-faint: #64779a;
+        --switch-off: #333f5c;
+    }
+    body[data-theme="dark"] .card.alarm { background: #2a1b1b; border-color: #5a2a2a; }
+    body[data-theme="dark"] .tag.ok { background: #16301c; color: #7bc98a; }
+    body[data-theme="dark"] .tag.err { background: #3a1a1a; color: #ff9a9a; }
+    body[data-theme="dark"] .tag.unknown { background: #232d47; color: #8fa2c0; }
+    body[data-theme="dark"] .badge.sensor { background: #23304a; color: #7ab8ff; }
+    body[data-theme="dark"] .badge.controller { background: #3a2c1a; color: #ffb066; }
+    body[data-theme="dark"] .badge.type { background: #232d47; color: #93a3bd; }
+    body[data-theme="dark"] .alert-banner { background: #3a1a1a; color: #ff9a9a; border-color: #5a2a2a; }
+    body[data-theme="dark"] .alert-item { background: #2a1a1a; }
+    body[data-theme="dark"] .alert-item .a-t { color: #ff9a9a; }
+    body[data-theme="dark"] .alert-item .a-d { color: #b08a8a; }
+    body[data-theme="dark"] .modal-x { background: #232d47; color: var(--title); }
+    body[data-theme="dark"] .switch::after { background: #e6edf7; }
+    body[data-theme="dark"] #addControllerBtn { background: #3a2c1a !important; color: #ffb066 !important; }
+    body {
+        background: var(--bg);
+        font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+        padding: 16px;
+        padding-bottom: 24px;
+        color: var(--title);
+    }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    /* 顶部导航 */
+    .topbar {
+        background: var(--surface);
+        border-radius: 16px;
+        box-shadow: 0 2px 12px #00000014;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .topbar .brand .t { font-size: 18px; font-weight: 700; white-space: nowrap; }
+    .topbar .brand .sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar .conn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; }
+    .btn {
+        border: none; border-radius: 11px; padding: 9px 14px;
+        font-size: 14px; background: var(--surface-3); color: var(--title); white-space: nowrap;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+    .btn:disabled { opacity: .45; pointer-events: none; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 告警横幅 */
+    .alert-banner {
+        background: #fdecea; color: #b3261e;
+        border: 1px solid #f5c6c6; border-radius: 12px;
+        padding: 10px 14px; margin-bottom: 14px; font-size: 14px;
+        display: none; align-items: center; gap: 8px;
+    }
+
+    /* 卡片网格 */
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .card {
+        background: var(--surface); border-radius: 16px; padding: 14px 12px;
+        box-shadow: 0 2px 10px #0000000d; position: relative; text-align: center;
+        border: 1px solid var(--card-border);
+        min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+        transition: transform .12s, box-shadow .12s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px #00000014; }
+    .card .ico {
+        width: 46px; height: 46px; border-radius: 14px;
+        background: var(--accent, var(--primary));
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 2px; box-shadow: 0 4px 10px rgba(0,0,0,.12);
+    }
+    .card .ico i { font-size: 20px; color: #fff; }
+    .card .nm { font-size: 14px; color: var(--title); font-weight: 600; }
+    .card .vrow { display: flex; align-items: baseline; gap: 3px; justify-content: center; }
+    .card .val { font-size: 22px; font-weight: 700; color: var(--title); word-break: break-all; }
+    .card .unit { font-size: 12px; color: var(--muted); }
+    .card .tag {
+        font-size: 11px; padding: 2px 8px; border-radius: 20px;
+        background: var(--surface-3); color: var(--muted); margin-top: 2px;
+    }
+    .card .tag.ok { background: #e6f4e6; color: #2e7d32; }
+    .card .tag.err { background: #fdecea; color: #b3261e; }
+    .card .tag.unknown { background: var(--surface-3); color: var(--text-faint); }
+    .card.alarm { background: #fff7f7; border-color: #f5c6c6; }
+    .card.alarm .val { color: var(--danger); }
+
+    .hist-ico {
+        position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
+        border-radius: 50%; background: var(--surface-3); display: flex; align-items: center;
+        justify-content: center; font-size: 13px; color: var(--primary); cursor: pointer;
+    }
+
+    /* 控制器交互控件 */
+    .ctrl-inner { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .switch {
+        width: 56px; height: 32px; border-radius: 16px; border: none;
+        background: var(--switch-off); position: relative; padding: 0; transition: background .3s;
+    }
+    .switch.on { background: var(--accent, var(--primary)); }
+    .switch::after {
+        content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px;
+        background: #fff; border-radius: 50%; transition: transform .3s; box-shadow: 0 2px 4px rgba(0,0,0,.25);
+    }
+    .switch.on::after { transform: translateX(24px); }
+    .select-box, .input-box, .textarea-box {
+        width: 100%; border: 1px solid var(--line); border-radius: 9px;
+        padding: 8px 10px; font-size: 14px; background: var(--surface-2); color: var(--title); outline: none;
+    }
+    .select-box:focus, .input-box:focus { border-color: var(--primary); }
+    .stepper { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .stepper button {
+        width: 30px; height: 30px; border-radius: 8px; border: none;
+        background: var(--surface-3); font-size: 16px; color: var(--title); flex: none;
+    }
+    .stepper input { flex: 1; min-width: 0; text-align: center; -moz-appearance: textfield; }
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    /* 设置页 */
+    .settings-head {
+        background: var(--surface); border-radius: 16px; box-shadow: 0 2px 12px #00000014;
+        padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .settings-head h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .settings-head h1 i { color: var(--primary); }
+    .sect {
+        background: var(--surface); border-radius: 16px; box-shadow: 0 2px 12px #00000014;
+        padding: 16px; margin-bottom: 16px;
+    }
+    .sect-h {
+        font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+        margin-bottom: 14px; cursor: pointer;
+    }
+    .sect-h i:first-child { color: var(--primary); }
+    .sect-h .chev { margin-left: auto; font-size: 13px; color: var(--muted); transition: transform .2s; }
+    .sect-body { display: none; }
+    .sect.open .sect-body { display: block; }
+    .sect.open .chev { transform: rotate(180deg); }
+    .field { margin-bottom: 10px; }
+    .flabel { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .finput {
+        width: 100%; border: 1px solid var(--line); border-radius: 10px;
+        padding: 10px 13px; font-size: 15px; color: var(--title); outline: none; background: var(--surface);
+    }
+    .finput:focus { border-color: var(--primary); }
+    textarea.finput { resize: vertical; }
+    .row2 { display: flex; gap: 10px; align-items: flex-end; }
+    .row2 > * { flex: 1; }
+
+    /* 图标选择器 */
+    .icon-grid {
+        display: flex; flex-wrap: wrap; gap: 6px; max-height: 128px; overflow-y: auto;
+        border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--surface-2);
+    }
+    .icon-cell {
+        width: 40px; height: 40px; border-radius: 9px; border: 2px solid transparent;
+        background: var(--surface-2); display: flex; align-items: center; justify-content: center;
+        font-size: 18px; color: var(--title); cursor: pointer; flex: none;
+    }
+    .icon-cell.sel { border-color: var(--primary); background: var(--accent-soft); color: var(--primary); }
+    /* 颜色选择器 */
+    .color-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+    .color-cell {
+        width: 36px; height: 36px; border-radius: 9px; border: 3px solid transparent;
+        cursor: pointer; position: relative; flex: none;
+    }
+    .color-cell.sel { border-color: var(--title); box-shadow: 0 0 0 2px var(--surface) inset; }
+
+    /* 数据点列表 */
+    .point-item {
+        display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+        border: 1px solid var(--item-border); border-radius: 12px; margin-bottom: 8px; background: var(--surface-2);
+    }
+    .point-item .order-num {
+        width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent-ink);
+        font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+    }
+    .point-item .pi-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; flex: none; background: var(--primary); }
+    .point-item .pi-meta { flex: 1; min-width: 0; }
+    .point-item .pi-meta .n-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px; }
+    .point-item .pi-meta .n { font-size: 15px; font-weight: 600; }
+    .point-item .pi-meta .k { font-size: 12px; color: var(--muted); word-break: break-all; }
+    .point-item .pi-actions { display: flex; align-items: center; gap: 5px; flex: none; }
+    .point-item .sort-btns { display: flex; flex-direction: column; gap: 2px; }
+    .point-item .sort-btns .btn.small { padding: 3px 7px; font-size: 11px; }
+    .point-item .pi-actions > .btn.small { padding: 6px 9px; }
+    .badge {
+        font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--surface-3); color: var(--muted); white-space: nowrap;
+    }
+    .badge.type { background: var(--surface-3); color: var(--muted); }
+    .badge.sensor { background: var(--accent-soft); color: var(--accent-ink); }
+    .badge.controller { background: #fff3e0; color: #e65100; }
+    .point-item.hidden { opacity: .55; }
+    .point-item .btn.eye-off { color: var(--text-faint); }
+
+    /* 报警记录 */
+    .alert-item {
+        display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px;
+        background: #fdecea; border-radius: 10px; margin-bottom: 8px; font-size: 13px;
+    }
+    .alert-item .a-t { color: #b3261e; font-weight: 600; }
+    .alert-item .a-d { color: #8a6d6d; font-size: 12px; }
+    .empty-tip { text-align: center; color: var(--text-faint); font-size: 13px; padding: 20px 0; }
+    .empty-tip i { display: block; font-size: 34px; margin-bottom: 8px; color: var(--item-border); }
+
+    /* 弹窗 */
+    .backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,.5);
+        display: flex; align-items: center; justify-content: center; z-index: 9998;
+    }
+    .modal {
+        background: var(--surface); border-radius: 16px; width: 92%; max-width: 560px;
+        max-height: 88vh; overflow-y: auto; padding: 18px;
+    }
+    .modal-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-h h3 { font-size: 18px; }
+    .modal-x { background: var(--surface-3); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--title); }
+    .modal-foot { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-foot .btn { flex: 1; justify-content: center; padding: 12px; }
+    .cur-val {
+        font-size: 14px; font-weight: 700; color: var(--primary); padding: 6px 12px;
+        background: var(--accent-soft); border-radius: 8px; display: inline-block; margin-bottom: 8px;
+    }
+
+    /* 图表 */
+    #chartTip { text-align: center; font-size: 13px; color: var(--text-faint); margin-top: 6px; }
+
+    /* Toast */
+    .toast {
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: var(--primary); color: #fff; padding: 11px 24px; border-radius: 24px;
+        font-size: 15px; font-weight: 700; z-index: 99999; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    }
+
+    /* 皮肤选择 */
+    .theme-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+    .theme-opt {
+        flex: 1; min-width: 100px; border: 2px solid var(--line); border-radius: 14px;
+        background: var(--surface); padding: 12px 10px; cursor: pointer; color: var(--title);
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        transition: border-color .15s, transform .15s;
+    }
+    .theme-opt:hover { transform: translateY(-2px); }
+    .theme-opt.active { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .theme-swatch { display: flex; gap: 4px; }
+    .theme-swatch i { width: 26px; height: 26px; border-radius: 7px; border: 1px solid rgba(0,0,0,.1); }
+    .theme-swatch.mint i:nth-child(1) { background: #e3f4eb; }
+    .theme-swatch.mint i:nth-child(2) { background: #ffffff; }
+    .theme-swatch.mint i:nth-child(3) { background: #1fae7a; }
+    .theme-swatch.classic i:nth-child(1) { background: #dce8f5; }
+    .theme-swatch.classic i:nth-child(2) { background: #ffffff; }
+    .theme-swatch.classic i:nth-child(3) { background: #3399dd; }
+    .theme-swatch.dark i:nth-child(1) { background: #0a1020; }
+    .theme-swatch.dark i:nth-child(2) { background: #141c30; }
+    .theme-swatch.dark i:nth-child(3) { background: #4aa8ff; }
+    .theme-name { font-size: 13px; color: var(--title); font-weight: 600; }
+
+    @media (max-width: 840px) {
+        .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+        .grid { gap: 10px; }
+        body { padding: 10px; padding-bottom: 20px; }
+        .topbar { position: sticky; top: 0; z-index: 9994; flex-wrap: wrap; }
+        .topbar .brand { width: 100%; flex: none; order: 1; }
+        .topbar .conn { flex: 1; order: 2; }
+        .topbar > div:last-child { order: 3; }
+        .card { min-height: 116px; padding: 14px 10px; border-radius: 14px; }
+        .row2 { flex-wrap: wrap; }
+        .row2 > * { flex: 1 1 45%; }
+    }
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- ============ 首页 ============ -->
+<div id="homePage" class="page active">
+    <div class="topbar">
+        <div class="brand">
+            <div>
+                <div class="t"><span id="appTitleText">万能配置台</span></div>
+                <div class="sub">设备：<span id="deviceNameDisplay">未配置</span></div>
+            </div>
+        </div>
+        <div class="conn">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">未连接</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button class="btn" id="refreshBtn"><i class="fa fa-refresh"></i> 刷新</button>
+            <button class="btn primary" id="goSettingsBtn"><i class="fa fa-gear"></i> 设置</button>
+        </div>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+        <i class="fa fa-exclamation-triangle"></i>
+        <span id="alertBannerText"></span>
+    </div>
+
+    <div class="grid" id="cardGrid"></div>
+
+    <div style="text-align:center;font-size:13px;color:var(--muted);padding:6px 0 20px;">
+        <i class="fa fa-refresh"></i> 数据每 10 秒自动刷新
+    </div>
+</div>
+
+<!-- ============ 设置页 ============ -->
+<div id="settingsPage" class="page">
+    <div class="settings-head">
+        <button class="btn primary" id="backHomeBtn"><i class="fa fa-arrow-left"></i> 返回</button>
+        <h1><i class="fa fa-gear"></i> 设置</h1>
+    </div>
+
+    <!-- 界面皮肤 -->
+    <div class="sect open" id="sectTheme">
+        <div class="sect-h"><i class="fa fa-paint-brush"></i> 界面皮肤 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="theme-grid" id="themeGrid">
+                <button type="button" class="theme-opt" data-theme="mint">
+                    <span class="theme-swatch mint"><i></i><i></i><i></i></span>
+                    <span class="theme-name">翡翠青绿</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="default">
+                    <span class="theme-swatch classic"><i></i><i></i><i></i></span>
+                    <span class="theme-name">经典灰蓝</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="dark">
+                    <span class="theme-swatch dark"><i></i><i></i><i></i></span>
+                    <span class="theme-name">暗黑深空</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 应用名称 -->
+    <div class="sect open" id="sectApp">
+        <div class="sect-h"><i class="fa fa-header"></i> 应用名称 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="field">
+                <div class="flabel">主页标题（最多 5 个字）</div>
+                <input class="finput" id="inputAppTitle" maxlength="5" placeholder="请输入标题（≤5字）">
+            </div>
+            <div style="font-size:12px;color:var(--muted);">留空则显示默认「万能配置台」。</div>
+        </div>
+    </div>
+
+    <!-- OneNet 平台配置 -->
+    <div class="sect open" id="sectPlatform">
+        <div class="sect-h"><i class="fa fa-cloud"></i> OneNet 平台配置 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="field"><div class="flabel">产品 ID（Product ID）</div><input class="finput" id="inputProductId" placeholder="请输入产品 ID"></div>
+            <div class="field"><div class="flabel">设备名称（Device Name）</div><input class="finput" id="inputDeviceName" placeholder="请输入设备名称"></div>
+            <div class="field"><div class="flabel">鉴权 Token（Authorization）</div><input class="finput" id="inputToken" type="password" placeholder="以 version=... 开头，请完整复制"></div>
+            <div class="row2">
+                <button class="btn primary" id="saveConfigBtn" style="justify-content:center;"><i class="fa fa-save"></i> 保存并连接</button>
+                <button class="btn danger" id="clearConfigBtn" style="justify-content:center;"><i class="fa fa-trash"></i> 清除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据点管理 -->
+    <div class="sect open" id="sectPoints">
+        <div class="sect-h"><i class="fa fa-database"></i> 数据模型（数据点）<i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="btn primary" id="addSensorBtn"><i class="fa fa-plus"></i> 传感器</button>
+                <button class="btn" id="addControllerBtn" style="background:#fff3e0;color:#e65100;"><i class="fa fa-plus"></i> 控制器</button>
+                <button class="btn" id="importBtn"><i class="fa fa-upload"></i> 导入物模型</button>
+            </div>
+            <div id="pointList"></div>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">提示：列表开头的数字即首页显示顺序，可用 ↑↓ 调整，或在编辑页设置“排序号”（越小越靠前）。</p>
+        </div>
+    </div>
+
+    <!-- 报警记录 -->
+    <div class="sect" id="sectAlerts">
+        <div class="sect-h"><i class="fa fa-bell"></i> 报警记录 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div style="text-align:right;margin-bottom:8px;">
+                <button class="btn small danger" id="clearAlertsBtn"><i class="fa fa-trash"></i> 清空记录</button>
+            </div>
+            <div id="alertList"></div>
+        </div>
+    </div>
+
+    <!-- 数据管理 -->
+    <div class="sect" id="sectReset">
+        <div class="sect-h"><i class="fa fa-wrench"></i> 数据管理 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <button class="btn danger" id="resetBtn" style="justify-content:center;width:100%;"><i class="fa fa-eraser"></i> 恢复默认 / 清除缓存</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ 数据点编辑弹窗 ============ -->
+<div class="backdrop" id="pointModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3 id="pointModalTitle">添加数据点</h3>
+            <button class="modal-x" id="pointModalClose">&times;</button>
+        </div>
+        <div class="field"><div class="flabel">内部 ID（英文，唯一）*</div><input class="finput" id="pId" placeholder="如 temp1"></div>
+        <div class="field"><div class="flabel">显示名称（中文）*</div><input class="finput" id="pName" placeholder="如 机房温度"></div>
+        <div class="field"><div class="flabel">OneNet 云端标识符（Cloud Key）*</div><input class="finput" id="pKey" placeholder="与物模型标识符一字不差"></div>
+        <div class="row2">
+            <div class="field">
+                <div class="flabel">读写模式</div>
+                <select class="finput" id="pMode">
+                    <option value="sensor">传感器（只读）</option>
+                    <option value="controller">控制器（可下发）</option>
+                </select>
+            </div>
+            <div class="field">
+                <div class="flabel">数据类型 *</div>
+                <select class="finput" id="pType"></select>
+            </div>
+        </div>
+        <div class="row2">
+            <div class="field">
+                <div class="flabel">单位（可选）</div>
+                <input class="finput" id="pUnit" list="unitList" placeholder="如 ℃、%RH、V...">
+                <datalist id="unitList">
+                    <option value="℃"></option><option value="°F"></option><option value="%RH"></option>
+                    <option value="V"></option><option value="mV"></option><option value="A"></option>
+                    <option value="mA"></option><option value="W"></option><option value="kW"></option>
+                    <option value="kWh"></option><option value="lx"></option><option value="rpm"></option>
+                    <option value="mg/L"></option><option value="mg/kg"></option><option value="μg/m³"></option>
+                    <option value="pH"></option><option value="dB"></option><option value="Hz"></option>
+                    <option value="ppm"></option><option value="kPa"></option><option value="Pa"></option>
+                    <option value="hPa"></option><option value="m"></option><option value="cm"></option>
+                    <option value="mm"></option><option value="s"></option><option value="min"></option>
+                    <option value="h"></option><option value="m/s"></option><option value="t"></option>
+                    <option value="kg"></option><option value="g"></option>
+                </datalist>
+            </div>
+            <div class="field">
+                <div class="flabel">排序号</div>
+                <input class="finput" id="pOrder" type="number" min="0" step="1" placeholder="自动排最后">
+            </div>
+            <div class="field">
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;height:100%;">
+                    <input type="checkbox" id="pVisible" checked style="width:18px;height:18px;accent-color:var(--primary);"> 在首页显示
+                </label>
+            </div>
+        </div>
+        <div class="field">
+            <div class="flabel">图标（点击选择）</div>
+            <div class="icon-grid" id="pIconGrid"></div>
+        </div>
+        <div class="field">
+            <div class="flabel">颜色（点击选择）</div>
+            <div class="color-grid" id="pColorGrid"></div>
+        </div>
+        <div class="field" id="enumField" style="display:none;">
+            <div class="flabel">枚举选项（逗号分隔）</div>
+            <input class="finput" id="pEnum" placeholder="如 关闭,开启,自动">
+        </div>
+        <div id="thresholdField">
+            <div class="row2">
+                <div class="field"><div class="flabel">报警下限（可选）</div><input class="finput" id="pMin" type="number" step="any" placeholder="留空不启用"></div>
+                <div class="field"><div class="flabel">报警上限（可选）</div><input class="finput" id="pMax" type="number" step="any" placeholder="留空不启用"></div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn" id="pointSaveBtn"><i class="fa fa-check"></i> 保存</button>
+            <button class="btn" id="pointCancelBtn"><i class="fa fa-times"></i> 取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ 导入物模型弹窗 ============ -->
+<div class="backdrop" id="importModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3><i class="fa fa-upload" style="color:var(--primary);"></i> 导入平台物模型</h3>
+            <button class="modal-x" id="importModalClose">&times;</button>
+        </div>
+        <div class="field">
+            <div class="flabel">选择 OneNet 物模型导出的 .json 文件</div>
+            <input type="file" id="importFileInput" accept=".json,application/json" class="finput">
+        </div>
+        <div class="flabel" style="margin:6px 0 4px;">或直接粘贴 JSON 内容</div>
+        <textarea id="importText" class="finput" rows="9" style="font-size:12px;font-family:Consolas,monospace;" placeholder='{"version":"1.0","properties":[{"identifier":"...","name":"...","accessMode":"rw","dataType":{"type":"float","specs":{"unit":"℃"}}}]}'></textarea>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">适配规则：identifier → 云端标识符；accessMode（r=传感器 / rw·w=控制器）；dataType.type → 数据类型；specs.unit → 单位。已存在的云端标识符将被更新。</p>
+        <div class="modal-foot">
+            <button class="btn primary" id="importParseBtn"><i class="fa fa-check"></i> 解析并导入</button>
+            <button class="btn" id="importCancelBtn"><i class="fa fa-times"></i> 取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ 历史数据弹窗 ============ -->
+<div class="backdrop" id="historyModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3 id="histTitle">历史数据</h3>
+            <button class="modal-x" id="histClose">&times;</button>
+        </div>
+        <div id="histBadge" style="font-size:12px;color:var(--muted);margin-bottom:6px;"></div>
+        <div id="histCur" class="cur-val">当前值：--</div>
+        <div id="histChart" style="width:100%;height:240px;"></div>
+        <div id="chartTip"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ============ 数据类型定义 ============
+    const DATA_TYPES = {
+        int32:  { label: '整数型 int32',   kind: 'number', writable: true,  plottable: true,  decimals: 0 },
+        int64:  { label: '长整数型 int64', kind: 'number', writable: true,  plottable: true,  decimals: 0 },
+        float:  { label: '单精度浮点型 float', kind: 'number', writable: true, plottable: true, decimals: 2 },
+        double: { label: '双精度浮点型 double', kind: 'number', writable: true, plottable: true, decimals: 4 },
+        enum:   { label: '枚举 enum',      kind: 'enum',   writable: true,  plottable: false, decimals: 0 },
+        bool:   { label: '布尔 bool',      kind: 'bool',   writable: true,  plottable: false, decimals: 0 },
+        string: { label: '字符串 string',  kind: 'string', writable: true,  plottable: false, decimals: 0 },
+        bitMap: { label: '位图 bitMap',    kind: 'string', writable: true,  plottable: false, decimals: 0 },
+        struct: { label: '结构体 struct',  kind: 'json',   writable: false, plottable: false, decimals: 0 },
+        array:  { label: '数组 array',     kind: 'json',   writable: false, plottable: false, decimals: 0 },
+        date:   { label: '时间 date',      kind: 'date',   writable: true,  plottable: false, decimals: 0 },
+        buffer: { label: '二进制 buffer',  kind: 'string', writable: false, plottable: false, decimals: 0 }
+    };
+
+    const ICONS = [
+        'fa-thermometer-half','fa-tint','fa-bolt','fa-flask','fa-leaf','fa-pagelines',
+        'fa-tree','fa-balance-scale','fa-sun-o','fa-moon-o','fa-tachometer','fa-battery-full',
+        'fa-fire','fa-snowflake-o','fa-cloud','fa-bar-chart','fa-signal','fa-wifi','fa-clock-o',
+        'fa-lightbulb-o','fa-eye','fa-heartbeat','fa-line-chart','fa-area-chart','fa-gears',
+        'fa-industry','fa-home','fa-truck','fa-cube','fa-plug','fa-hdd-o',
+        'fa-power-off','fa-font','fa-code','fa-list-ol'
+    ];
+    const ICON_LABELS = {
+        'fa-thermometer-half':'温度','fa-tint':'湿度/水滴','fa-bolt':'电流/电量','fa-flask':'化学/实验',
+        'fa-leaf':'叶片','fa-pagelines':'植物','fa-tree':'树木','fa-balance-scale':'天平/PH',
+        'fa-sun-o':'光照/太阳','fa-moon-o':'月光','fa-tachometer':'转速/仪表','fa-battery-full':'电池',
+        'fa-fire':'火焰/温度','fa-snowflake-o':'制冷/雪花','fa-cloud':'云','fa-bar-chart':'柱状图',
+        'fa-signal':'信号','fa-wifi':'WiFi','fa-clock-o':'时间','fa-lightbulb-o':'灯光',
+        'fa-eye':'可视/检测','fa-heartbeat':'心跳/健康','fa-line-chart':'折线','fa-area-chart':'面积图',
+        'fa-gears':'设备/档位','fa-industry':'工业/车间','fa-home':'家用','fa-truck':'车辆/运输',
+        'fa-cube':'箱体','fa-plug':'插座/继电器','fa-hdd-o':'存储/硬盘',
+        'fa-power-off':'电源/开关','fa-font':'文本','fa-code':'代码/JSON','fa-list-ol':'列表'
+    };
+    const COLORS = [ '#3399dd','#4caf50','#e05555','#ff9800','#9c27b0','#00bcd4','#795548','#607d8b' ];
+
+    const api = {
+        deviceDetail: 'https://iot-api.heclouds.com/device/detail',
+        getProperty:  'https://iot-api.heclouds.com/thingmodel/query-device-property',
+        setProperty:  'https://iot-api.heclouds.com/thingmodel/set-device-property',
+        getHistory:   'https://iot-api.heclouds.com/thingmodel/query-device-property-history'
+    };
+
+    // ============ 状态 ============
+    let config = { productId: '', deviceName: '', token: '' };
+    let points = [];
+    let propCache = {};
+    let alerts = [];
+    let alertActive = {};
+    let chartInst = null;
+    let currentHistId = null;
+    let editingId = null;
+    let currentIcon = 'fa-thermometer-half';
+    let currentColor = '#3399dd';
+    let refreshTimer = null;
+
+    const STORE = {
+        config: 'cmcc.config',
+        points: 'cmcc.points',
+        alerts: 'cmcc.alerts',
+        theme: 'cmcc.theme'
+    };
+    function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+    function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+    function loadAll() {
+        config = Object.assign({ appTitle: '万能配置台', productId: '', deviceName: '', token: '' }, load(STORE.config, {}));
+        points = load(STORE.points, []);
+        points.forEach((p, i) => { if (p.order === undefined || p.order === null || isNaN(Number(p.order))) p.order = i; });
+        alerts = load(STORE.alerts, []);
+    }
+    function persistPoints() { save(STORE.points, points); }
+    function persistAlerts() { save(STORE.alerts, alerts); }
+
+    function ordOf(p) { const n = Number(p.order); return isNaN(n) ? 0 : n; }
+    function sortedPoints() { return points.slice().sort((a, b) => ordOf(a) - ordOf(b)); }
+    function nextOrder() {
+        const orders = points.map(p => Number(p.order)).filter(n => !isNaN(n));
+        return (orders.length ? Math.max.apply(null, orders) : -1) + 1;
+    }
+    function renumber() { sortedPoints().forEach((p, i) => { p.order = i; }); }
+
+    function $(id) { return document.getElementById(id); }
+    function showToast(msg) {
+        const t = $('toast'); t.textContent = msg; t.style.display = 'block';
+        clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 2200);
+    }
+    function switchPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        $(id).classList.add('active');
+    }
+    const THEME_KEYS = ['default', 'mint', 'dark'];
+    function applyTheme(theme) {
+        const t = THEME_KEYS.includes(theme) ? theme : 'default';
+        document.body.dataset.theme = t;
+        save(STORE.theme, t);
+        document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o.dataset.theme === t));
+    }
+    function renderIconGrid(selected) {
+        $('pIconGrid').innerHTML = ICONS.map(ic =>
+            `<button type="button" class="icon-cell ${ic === selected ? 'sel' : ''}" data-icon="${ic}" title="${ICON_LABELS[ic] || ''}"><i class="fa ${ic}"></i></button>`
+        ).join('');
+    }
+    function renderColorGrid(selected) {
+        $('pColorGrid').innerHTML = COLORS.map(c =>
+            `<button type="button" class="color-cell ${c === selected ? 'sel' : ''}" data-color="${c}" style="background:${c};" title="${c}"></button>`
+        ).join('');
+    }
+    function parseBool(v) { return v === true || v === 1 || v === '1' || v === 'true' || v === 'on'; }
+    function pointById(id) { return points.find(p => p.id === id); }
+    function pointByKey(key) { return points.find(p => p.cloudKey === key); }
+    function typeMeta(t) { return DATA_TYPES[t] || DATA_TYPES.string; }
+
+    function fmtNumber(v, meta) {
+        const n = Number(v);
+        if (isNaN(n)) return String(v);
+        if (meta.decimals === 0) return String(Math.round(n));
+        return n.toFixed(meta.decimals);
+    }
+    function fmtDate(v) {
+        if (v === null || v === undefined || v === '') return '--';
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) {
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+        return String(v);
+    }
+    function formatValue(v, p) {
+        if (v === undefined || v === null || v === '') return '--';
+        const meta = typeMeta(p.type);
+        switch (meta.kind) {
+            case 'number': return fmtNumber(v, meta);
+            case 'bool':   return parseBool(v) ? '开' : '关';
+            case 'enum': {
+                const opts = (p.enumOptions || []).map(String);
+                if (opts.length && typeof v === 'number') return opts[v] !== undefined ? opts[v] : String(v);
+                return String(v);
+            }
+            case 'date':   return fmtDate(v);
+            case 'json': {
+                const s = typeof v === 'string' ? v : JSON.stringify(v);
+                return s.length > 40 ? s.slice(0, 40) + '…' : s;
+            }
+            default:       return String(v);
+        }
+    }
+
+    function ensureConfig() { return config.productId && config.deviceName && config.token; }
+
+    async function fetchDeviceStatus() {
+        if (!ensureConfig()) {
+            $('statusDot').style.background = '#ccc';
+            $('statusText').textContent = '未连接';
+            return;
+        }
+        try {
+            const res = await fetch(`${api.deviceDetail}?product_id=${config.productId}&device_name=${config.deviceName}`, { headers: { authorization: config.token } });
+            const data = await res.json();
+            const online = data.code === 0 && data.data && (data.data.status === 1 || data.data.status === '1');
+            $('statusDot').style.background = online ? '#4caf50' : '#999';
+            $('statusText').textContent = online ? '在线' : '离线';
+            $('statusText').style.color = online ? '#2e7d32' : '#5a7a9a';
+        } catch (e) {
+            $('statusDot').style.background = '#ccc';
+            $('statusText').textContent = '连接失败';
+        }
+    }
+
+    async function fetchProperties() {
+        if (!ensureConfig() || points.length === 0) return;
+        try {
+            const res = await fetch(`${api.getProperty}?product_id=${config.productId}&device_name=${config.deviceName}`, { headers: { authorization: config.token } });
+            const data = await res.json();
+            if (data.code === 0 && Array.isArray(data.data)) {
+                data.data.forEach(item => { if (item && item.identifier !== undefined) propCache[item.identifier] = item.value; });
+                checkAlerts();
+                renderCards();
+                syncHistCurrent();
+            }
+        } catch (e) {}
+    }
+
+    function setProperty(key, value) {
+        return fetch(api.setProperty, {
+            method: 'POST',
+            headers: { authorization: config.token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: config.productId, device_name: config.deviceName, params: { [key]: value } })
+        }).then(r => r.json());
+    }
+
+    function renderPointList() {
+        const el = $('pointList');
+        if (points.length === 0) {
+            el.innerHTML = '<div class="empty-tip"><i class="fa fa-database"></i>暂无数据点，点击上方按钮添加或导入物模型。</div>';
+            return;
+        }
+        const arr = sortedPoints();
+        el.innerHTML = arr.map((p, i) => {
+            const m = typeMeta(p.type);
+            const badgeCls = p.mode === 'sensor' ? 'sensor' : 'controller';
+            const badgeTxt = p.mode === 'sensor' ? '传感器' : '控制器';
+            const visible = p.visible !== false;
+            return `
+            <div class="point-item ${visible ? '' : 'hidden'}">
+                <span class="order-num" title="显示顺序">${i + 1}</span>
+                <div class="pi-ico" style="background:${p.color}"><i class="fa ${p.icon}"></i></div>
+                <div class="pi-meta">
+                    <div class="n-row">
+                        <span class="n">${escapeHtml(p.name)}</span>
+                        <span class="badge type">${m.label}</span>
+                        <span class="badge ${badgeCls}">${badgeTxt}</span>
+                        ${visible ? '' : '<span class="badge">首页隐藏</span>'}
+                    </div>
+                    <div class="k">ID: ${escapeHtml(p.id)} · 云端: ${escapeHtml(p.cloudKey)}</div>
+                </div>
+                <div class="pi-actions">
+                    <div class="sort-btns">
+                        <button class="btn small" data-up="${p.id}" ${i === 0 ? 'disabled' : ''} title="上移"><i class="fa fa-arrow-up"></i></button>
+                        <button class="btn small" data-down="${p.id}" ${i === arr.length - 1 ? 'disabled' : ''} title="下移"><i class="fa fa-arrow-down"></i></button>
+                    </div>
+                    <button class="btn small ${visible ? '' : 'eye-off'}" data-eye="${p.id}" title="${visible ? '在首页隐藏' : '在首页显示'}"><i class="fa ${visible ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
+                    <button class="btn small" data-edit="${p.id}" title="编辑"><i class="fa fa-pencil"></i></button>
+                    <button class="btn small danger" data-del="${p.id}" title="删除"><i class="fa fa-trash"></i></button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function renderCards() {
+        const grid = $('cardGrid');
+        if (points.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;" class="empty-tip"><i class="fa fa-cubes"></i>还没有数据点。<br>点击右上角「设置」→「数据模型」添加或导入物模型。</div>';
+            return;
+        }
+        const visiblePoints = sortedPoints().filter(p => p.visible !== false);
+        if (visiblePoints.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;" class="empty-tip"><i class="fa fa-eye-slash"></i>所有数据点都已设为首页隐藏。<br>可到「设置」→「数据模型」点击眼睛图标重新显示。</div>';
+            return;
+        }
+        grid.innerHTML = visiblePoints.map(p => {
+            const val = propCache[p.cloudKey];
+            const hasData = val !== undefined && val !== null && val !== '';
+            const isAlarm = !!alertActive[p.cloudKey];
+            const m = typeMeta(p.type);
+            const histIcon = m.plottable ? `<div class="hist-ico" data-hist="${p.id}" title="历史数据"><i class="fa fa-clock-o"></i></div>` : '';
+            let inner = '';
+            if (p.mode === 'controller') {
+                inner = buildControllerHtml(p, val);
+            } else {
+                let tag;
+                if (!hasData) tag = '<span class="tag unknown">未知</span>';
+                else if (isAlarm) tag = '<span class="tag err">异常</span>';
+                else tag = '<span class="tag ok">正常</span>';
+                inner = `
+                    <div class="vrow"><span class="val" id="v_${p.id}">${formatValue(val, p)}</span>${p.unit ? `<span class="unit">${escapeHtml(p.unit)}</span>` : ''}</div>
+                    ${tag}`;
+            }
+            return `
+            <div class="card ${isAlarm ? 'alarm' : ''}" style="--accent:${p.color}">
+                ${histIcon}
+                <div class="ico"><i class="fa ${p.icon}"></i></div>
+                <div class="nm">${escapeHtml(p.name)}</div>
+                ${inner}
+            </div>`;
+        }).join('');
+    }
+
+    function buildControllerHtml(p, val) {
+        const m = typeMeta(p.type);
+        if (m.kind === 'bool') {
+            const hasData = val !== undefined && val !== null && val !== '';
+            const on = parseBool(val);
+            const label = hasData ? (on ? '开' : '关') : '未知';
+            return `<div class="ctrl-inner">
+                <button type="button" class="switch ${on ? 'on' : ''}" id="sw_${p.id}" data-switch="${p.id}"></button>
+                <span style="font-size:12px;color:var(--muted);">${label}</span>
+            </div>`;
+        }
+        if (m.kind === 'enum') {
+            const opts = p.enumOptions || [];
+            const cur = formatValue(val, p);
+            const options = opts.map(o => `<option value="${escapeHtml(o)}" ${String(o) === String(val) || (typeof val === 'number' && Number(o) === val) ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
+            return `<div class="ctrl-inner">
+                <select class="select-box" data-enum="${p.id}">${options || '<option>--</option>'}</select>
+                <span style="font-size:12px;color:var(--muted);">当前：${escapeHtml(cur)}</span>
+            </div>`;
+        }
+        if (m.kind === 'number') {
+            const step = m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001);
+            const cur = val === undefined || val === null ? '' : Number(val);
+            return `<div class="ctrl-inner">
+                <div class="stepper">
+                    <button type="button" data-step="${p.id}" data-d="-1">−</button>
+                    <input class="input-box" id="inp_${p.id}" type="number" step="${step}" value="${cur}">
+                    <button type="button" data-step="${p.id}" data-d="1">+</button>
+                </div>
+                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
+            </div>`;
+        }
+        if (m.kind === 'date') {
+            return `<div class="ctrl-inner">
+                <input class="input-box" id="inp_${p.id}" type="datetime-local">
+                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
+            </div>`;
+        }
+        if (m.kind === 'string') {
+            return `<div class="ctrl-inner">
+                <input class="input-box" id="inp_${p.id}" type="text" value="${val === undefined || val === null ? '' : escapeHtml(String(val))}" placeholder="输入值">
+                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
+            </div>`;
+        }
+        return `<div class="vrow"><span class="val">${formatValue(val, p)}</span></div>`;
+    }
+
+    document.addEventListener('change', function (e) {
+        const t = e.target;
+        if (t.dataset && t.dataset.enum) {
+            const p = pointById(t.dataset.enum);
+            if (!p) return;
+            let value = t.value;
+            if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+            doSend(p, value);
+        }
+    });
+    document.addEventListener('click', function (e) {
+        const ic = e.target.closest('.icon-cell');
+        if (ic) { currentIcon = ic.dataset.icon; document.querySelectorAll('.icon-cell').forEach(c => c.classList.toggle('sel', c === ic)); return; }
+        const cc = e.target.closest('.color-cell');
+        if (cc) { currentColor = cc.dataset.color; document.querySelectorAll('.color-cell').forEach(c => c.classList.toggle('sel', c === cc)); return; }
+
+        const t = e.target.closest('[data-switch], [data-step], [data-send], [data-hist], [data-edit], [data-del], [data-up], [data-down], [data-eye]');
+        if (!t) return;
+
+        if (t.dataset.switch !== undefined) { const p = pointById(t.dataset.switch); if (p) doSend(p, !parseBool(propCache[p.cloudKey])); }
+        else if (t.dataset.step !== undefined) { const p = pointById(t.dataset.step); const dir = Number(t.dataset.d); const m = typeMeta(p.type); const step = m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001); const inp = $('inp_' + p.id); let v = Number(inp.value || propCache[p.cloudKey] || 0) + dir * step; inp.value = Number(v.toFixed(m.decimals)); }
+        else if (t.dataset.send !== undefined) { const p = pointById(t.dataset.send); const m = typeMeta(p.type); let value = $('inp_' + p.id).value; if (m.kind === 'number') value = Number(value); if (m.kind === 'date') value = value ? new Date(value).toISOString() : ''; doSend(p, value); }
+        else if (t.dataset.hist !== undefined) { openHistory(t.dataset.hist); }
+        else if (t.dataset.eye !== undefined) { const p = pointById(t.dataset.eye); if (p) { p.visible = p.visible === false; persistPoints(); renderPointList(); renderCards(); } }
+        else if (t.dataset.edit !== undefined) { openPointForm(t.dataset.edit); }
+        else if (t.dataset.del !== undefined) { deletePoint(t.dataset.del); }
+        else if (t.dataset.up !== undefined) { movePoint(t.dataset.up, -1); }
+        else if (t.dataset.down !== undefined) { movePoint(t.dataset.down, 1); }
+    });
+
+    function doSend(p, value) {
+        const prev = propCache[p.cloudKey];
+        propCache[p.cloudKey] = value;
+        renderCards();
+        if (!ensureConfig()) { showToast('本地演示：未配置云平台'); return; }
+        setProperty(p.cloudKey, value).then(data => {
+            if (data.code === 0) { showToast('指令已下发 ✓'); setTimeout(fetchProperties, 1500); }
+            else { propCache[p.cloudKey] = prev; renderCards(); showToast('下发失败：' + (data.msg || data.code)); }
+        }).catch(() => { propCache[p.cloudKey] = prev; renderCards(); showToast('下发超时'); });
+    }
+
+    function movePoint(id, dir) {
+        const arr = sortedPoints();
+        const idx = arr.findIndex(p => p.id === id);
+        const target = idx + dir;
+        if (idx < 0 || target < 0 || target >= arr.length) return;
+        [arr[idx], arr[target]] = [arr[target], arr[idx]];
+        arr.forEach((p, i) => { p.order = i; });
+        persistPoints(); renderPointList(); renderCards();
+    }
+
+    function checkAlerts() {
+        let triggered = [];
+        points.forEach(p => {
+            if (p.mode !== 'sensor') return;
+            const m = typeMeta(p.type);
+            if (m.kind !== 'number') return;
+            const v = propCache[p.cloudKey];
+            if (v === undefined || v === null || v === '') return;
+            const n = Number(v);
+            const low = (p.min !== undefined && p.min !== null && p.min !== '') ? Number(p.min) : null;
+            const high = (p.max !== undefined && p.max !== null && p.max !== '') ? Number(p.max) : null;
+            let over = false, note = '';
+            if (low !== null && n < low) { over = true; note = `低于下限 ${low}`; }
+            else if (high !== null && n > high) { over = true; note = `超过上限 ${high}`; }
+            if (over && !alertActive[p.cloudKey]) {
+                alertActive[p.cloudKey] = true;
+                alerts.unshift({ time: Date.now(), name: p.name, cloudKey: p.cloudKey, value: n, note });
+                persistAlerts(); triggered.push(p.name);
+            } else if (!over && alertActive[p.cloudKey]) { alertActive[p.cloudKey] = false; }
+        });
+        renderAlertBanner(); renderAlertList();
+        if (triggered.length) showToast('警报！' + triggered.join('、'));
+    }
+
+    function renderAlertBanner() {
+        const active = Object.keys(alertActive).filter(k => alertActive[k]);
+        const b = $('alertBanner');
+        if (active.length) { b.style.display = 'flex'; $('alertBannerText').textContent = '传感器异常：' + active.map(k => (pointByKey(k) || {}).name || k).join('、'); }
+        else b.style.display = 'none';
+    }
+
+    function renderAlertList() {
+        const el = $('alertList');
+        if (!alerts.length) { el.innerHTML = '<div class="empty-tip">暂无报警记录</div>'; return; }
+        el.innerHTML = alerts.map(a => `
+            <div class="alert-item">
+                <div><div class="a-t">${escapeHtml(a.name)}</div><div class="a-d">${escapeHtml(a.note)} · 数值 ${a.value}</div></div>
+                <div class="a-d">${fmtDate(a.time)}</div>
+            </div>`).join('');
+    }
+
+    async function fetchHistory(id) {
+        const p = pointById(id);
+        if (!p || !ensureConfig()) return null;
+        const end = Date.now(), start = end - 86400000;
+        try {
+            const res = await fetch(`${api.getHistory}?product_id=${config.productId}&device_name=${config.deviceName}&identifier=${p.cloudKey}&start_time=${start}&end_time=${end}&limit=100`, { headers: { authorization: config.token } });
+            const data = await res.json();
+            if (data.code === 0 && data.data && data.data.list) {
+                const list = data.data.list.sort((a, b) => Number(a.time) - Number(b.time));
+                return { times: list.map(i => { const d = new Date(Number(i.time)); return `${d.getHours()}:${d.getMinutes()}`; }), values: list.map(i => Number(i.value)) };
+            }
+        } catch (e) {}
+        return null;
+    }
+    function openHistory(id) {
+        const p = pointById(id); if (!p) return;
+        currentHistId = id;
+        if (chartInst) { chartInst.dispose(); chartInst = null; }
+        $('histTitle').textContent = p.name + ' - 历史数据';
+        $('histBadge').textContent = `${p.cloudKey} · ${p.unit || typeMeta(p.type).label}`;
+        syncHistCurrent();
+        $('chartTip').textContent = '加载中...';
+        $('historyModal').style.display = 'flex';
+        fetchHistory(id).then(res => {
+            const el = $('histChart');
+            if (!res) { $('chartTip').textContent = '暂无数据'; return; }
+            $('chartTip').textContent = '';
+            chartInst = echarts.init(el);
+            chartInst.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '10%', top: '8%', containLabel: true },
+                xAxis: { type: 'category', data: res.times },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: res.values, smooth: true, lineStyle: { width: 2, color: p.color }, itemStyle: { color: p.color }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: p.color + '30' }, { offset: 1, color: p.color + '05' }]) } }]
+            });
+            chartInst.resize();
+        });
+    }
+    function closeHistory() { $('historyModal').style.display = 'none'; if (chartInst) { chartInst.dispose(); chartInst = null; } currentHistId = null; }
+    function syncHistCurrent() {
+        if (!currentHistId) return;
+        const p = pointById(currentHistId); if (!p) return;
+        const v = propCache[p.cloudKey];
+        $('histCur').textContent = '当前值：' + formatValue(v, p) + (p.unit ? ' ' + p.unit : '');
+    }
+
+    function fillTypeOptions(mode, selected) {
+        const sel = $('pType');
+        sel.innerHTML = Object.keys(DATA_TYPES).map(t => {
+            const m = DATA_TYPES[t];
+            if (mode === 'controller' && !m.writable) return '';
+            return `<option value="${t}" ${t === selected ? 'selected' : ''}>${m.label}</option>`;
+        }).join('');
+    }
+    function openPointForm(id, presetMode) {
+        editingId = id || null;
+        const p = id ? pointById(id) : null;
+        const mode = p ? p.mode : (presetMode || 'sensor');
+        $('pMode').value = mode;
+        fillTypeOptions(mode, p ? p.type : (mode === 'controller' ? 'bool' : 'float'));
+        $('pId').value = p ? p.id : '';
+        $('pName').value = p ? p.name : '';
+        $('pKey').value = p ? p.cloudKey : '';
+        $('pUnit').value = p ? (p.unit || '') : '';
+        $('pOrder').value = p ? (p.order !== undefined && p.order !== null ? p.order : nextOrder()) : nextOrder();
+        $('pVisible').checked = p ? (p.visible !== false) : true;
+        currentIcon = p ? p.icon : 'fa-thermometer-half';
+        currentColor = p ? p.color : '#3399dd';
+        renderIconGrid(currentIcon); renderColorGrid(currentColor);
+        $('pEnum').value = p && p.enumOptions ? p.enumOptions.join(',') : '';
+        $('pMin').value = p && p.min !== undefined && p.min !== null && p.min !== '' ? p.min : '';
+        $('pMax').value = p && p.max !== undefined && p.max !== null && p.max !== '' ? p.max : '';
+        applyTypeVisibility();
+        $('pointModalTitle').textContent = id ? '编辑数据点' : '添加数据点';
+        $('pointModal').style.display = 'flex';
+    }
+    function closePointForm() { $('pointModal').style.display = 'none'; }
+    function applyTypeVisibility() {
+        const t = $('pType').value, mode = $('pMode').value, m = DATA_TYPES[t];
+        $('enumField').style.display = (m.kind === 'enum') ? 'block' : 'none';
+        $('thresholdField').style.display = (mode === 'sensor' && m.kind === 'number') ? 'block' : 'none';
+    }
+    function savePoint() {
+        const id = $('pId').value.trim(), name = $('pName').value.trim(), key = $('pKey').value.trim(), type = $('pType').value, mode = $('pMode').value;
+        if (!id || !name || !key) { showToast('请填写完整（ID/名称/CloudKey）'); return; }
+        if (!editingId && pointById(id)) { showToast('内部 ID 已存在'); return; }
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(id)) { showToast('ID 仅允许字母/数字/下划线，且以字母开头'); return; }
+        const m = typeMeta(type);
+        let enumOptions = [];
+        if (m.kind === 'enum') enumOptions = $('pEnum').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+        const orderVal = parseInt($('pOrder').value, 10);
+        const order = isNaN(orderVal) ? nextOrder() : orderVal;
+        const obj = {
+            id, name, cloudKey: key, type, mode,
+            unit: $('pUnit').value.trim(), icon: currentIcon, color: currentColor, order,
+            visible: $('pVisible').checked, enumOptions,
+            min: m.kind === 'number' ? ($('pMin').value === '' ? null : Number($('pMin').value)) : null,
+            max: m.kind === 'number' ? ($('pMax').value === '' ? null : Number($('pMax').value)) : null
+        };
+        if (editingId) { const idx = points.findIndex(x => x.id === editingId); if (idx >= 0) points[idx] = obj; }
+        else points.push(obj);
+        renumber(); persistPoints(); renderPointList(); renderCards(); closePointForm(); showToast('数据点已保存'); fetchProperties();
+    }
+    function deletePoint(id) {
+        if (!confirm('确定删除该数据点？')) return;
+        points = points.filter(p => p.id !== id);
+        delete propCache[id]; renumber(); persistPoints(); renderPointList(); renderCards(); showToast('已删除');
+    }
+
+    function normalizeType(t) { const s = String(t || '').trim(); const alias = { bitmap: 'bitMap', bit_map: 'bitMap', long: 'int64', integer: 'int32' }; return alias[s.toLowerCase()] || s; }
+    function sanitizeId(identifier, usedIds) {
+        let base = String(identifier || '').replace(/[^A-Za-z0-9_]/g, '_');
+        if (!/^[A-Za-z_]/.test(base)) base = 'p_' + base;
+        let id = base, n = 2;
+        while (usedIds.has(id)) { id = base + '_' + n++; }
+        usedIds.add(id); return id;
+    }
+    function suggestIcon(name, type) {
+        const n = String(name || '');
+        if (/温度|temp/i.test(n)) return 'fa-thermometer-half';
+        if (/湿度|水分|humi|moist/i.test(n)) return 'fa-tint';
+        if (/电压|volt/i.test(n)) return 'fa-battery-full';
+        if (/电流|curr|amp/i.test(n)) return 'fa-bolt';
+        if (/光照|亮度|light|lux/i.test(n)) return 'fa-sun-o';
+        if (/酸碱|pH/i.test(n)) return 'fa-balance-scale';
+        if (/阀门|valve|开关|继电器|relay|泵|pump/i.test(n)) return 'fa-power-off';
+        if (/门|door/i.test(n)) return 'fa-home';
+        if (/模式|档位|mode|level|gear/i.test(n)) return 'fa-gears';
+        if (/转速|速度|speed|rpm|电机|马达/i.test(n)) return 'fa-tachometer';
+        if (/电导|ec|盐分|盐|salt/i.test(n)) return 'fa-flask';
+        if (/氮/i.test(n)) return 'fa-leaf';
+        if (/磷/i.test(n)) return 'fa-pagelines';
+        if (/钾/i.test(n)) return 'fa-tree';
+        const kind = typeMeta(type).kind;
+        switch (kind) { case 'bool': return 'fa-power-off'; case 'enum': return 'fa-gears'; case 'number': return 'fa-tachometer'; case 'string': return 'fa-font'; case 'date': return 'fa-clock-o'; case 'json': return 'fa-code'; default: return 'fa-cube'; }
+    }
+    function extractEnumOptions(specs) {
+        if (Array.isArray(specs)) return specs.map(s => { if (s == null) return ''; if (typeof s === 'object') return (s.name != null ? s.name : (s.value != null ? s.value : '')); return String(s); }).filter(x => x !== '');
+        if (specs && typeof specs === 'object') return Object.values(specs).map(v => String(v)).filter(v => v !== '[object Object]' && v !== '');
+        return [];
+    }
+    function importModel(text) {
+        let data; try { data = JSON.parse(text); } catch (e) { showToast('JSON 解析失败'); return; }
+        const props = Array.isArray(data) ? data : (data && Array.isArray(data.properties) ? data.properties : null);
+        if (!props) { showToast('未找到 properties 列表'); return; }
+        const usedIds = new Set(points.map(p => p.id)), byKey = {}; points.forEach(p => byKey[p.cloudKey] = p);
+        let baseOrder = nextOrder(), added = 0, updated = 0;
+        props.forEach((prop, idx) => {
+            if (!prop || !prop.identifier) return;
+            const type = normalizeType(prop.dataType && prop.dataType.type);
+            if (!DATA_TYPES[type]) return;
+            const specs = (prop.dataType && prop.dataType.specs) || {};
+            const m = DATA_TYPES[type];
+            const mode = (prop.accessMode === 'r') ? 'sensor' : 'controller';
+            const obj = {
+                id: sanitizeId(prop.identifier, usedIds), name: prop.name || prop.identifier, cloudKey: prop.identifier,
+                type, mode, unit: (m.kind === 'number' && specs.unit) ? String(specs.unit) : '',
+                icon: suggestIcon(prop.name, type), color: COLORS[idx % COLORS.length], order: baseOrder + added,
+                enumOptions: (m.kind === 'enum') ? extractEnumOptions(specs) : [], min: null, max: null
+            };
+            const existing = byKey[obj.cloudKey];
+            if (existing) {
+                obj.id = existing.id; obj.icon = existing.icon; obj.color = existing.color; obj.min = existing.min; obj.max = existing.max; obj.order = existing.order;
+                const ei = points.findIndex(x => x.id === existing.id); if (ei >= 0) points[ei] = obj; updated++;
+            } else { points.push(obj); byKey[obj.cloudKey] = obj; added++; }
+        });
+        if (data && data.profile && data.profile.productId && !config.productId) { config.productId = String(data.profile.productId); save(STORE.config, config); $('inputProductId').value = config.productId; }
+        renumber(); persistPoints(); renderPointList(); renderCards(); closeImportModal(); showToast(`导入完成：新增 ${added}，更新 ${updated}`); fetchProperties();
+    }
+    function closeImportModal() { $('importModal').style.display = 'none'; }
+
+    function bindEvents() {
+        $('goSettingsBtn').onclick = () => switchPage('settingsPage');
+        $('backHomeBtn').onclick = () => switchPage('homePage');
+        $('refreshBtn').onclick = () => { fetchDeviceStatus(); fetchProperties(); showToast('已刷新'); };
+        $('saveConfigBtn').onclick = () => {
+            const productId = $('inputProductId').value.trim(), deviceName = $('inputDeviceName').value.trim(), token = $('inputToken').value.trim();
+            if (!productId || !deviceName || !token) { showToast('请填写完整的平台参数'); return; }
+            config = Object.assign({}, config, { productId, deviceName, token }); save(STORE.config, config);
+            $('deviceNameDisplay').textContent = deviceName; showToast('保存成功，正在连接...'); fetchDeviceStatus(); fetchProperties();
+            setTimeout(() => switchPage('homePage'), 600);
+        };
+        $('clearConfigBtn').onclick = () => { localStorage.removeItem(STORE.config); config = { appTitle: config.appTitle || '万能配置台', productId: '', deviceName: '', token: '' }; $('deviceNameDisplay').textContent = '未配置'; $('inputProductId').value = $('inputDeviceName').value = $('inputToken').value = ''; showToast('配置已清除'); };
+        $('inputAppTitle').addEventListener('input', function () { let v = this.value.slice(0, 5); this.value = v; const title = v.trim() || '万能配置台'; config.appTitle = title; save(STORE.config, config); $('appTitleText').textContent = title; });
+        $('addSensorBtn').onclick = () => openPointForm(null, 'sensor');
+        $('addControllerBtn').onclick = () => openPointForm(null, 'controller');
+        $('importBtn').onclick = () => { $('importText').value = ''; $('importFileInput').value = ''; $('importModal').style.display = 'flex'; };
+        $('importModalClose').onclick = closeImportModal;
+        $('importCancelBtn').onclick = closeImportModal;
+        $('importModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeImportModal(); });
+        $('importParseBtn').onclick = () => { const text = $('importText').value.trim(); if (!text) { showToast('请先粘贴 JSON 或选择文件'); return; } importModel(text); };
+        $('importFileInput').addEventListener('change', function (e) { const f = e.target.files && e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = () => { $('importText').value = reader.result; }; reader.readAsText(f, 'utf-8'); });
+        $('pointSaveBtn').onclick = savePoint;
+        $('pointCancelBtn').onclick = closePointForm;
+        $('pointModalClose').onclick = closePointForm;
+        $('pointModal').addEventListener('click', e => { if (e.target === e.currentTarget) closePointForm(); });
+        $('pMode').onchange = () => { fillTypeOptions($('pMode').value, 'bool'); applyTypeVisibility(); };
+        $('pType').onchange = applyTypeVisibility;
+        $('histClose').onclick = closeHistory;
+        $('historyModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHistory(); });
+        $('clearAlertsBtn').onclick = () => { alerts = []; persistAlerts(); renderAlertList(); showToast('已清空'); };
+        $('resetBtn').onclick = () => { if (!confirm('将清除所有配置、数据点和报警记录，确定恢复默认？')) return; localStorage.removeItem(STORE.config); localStorage.removeItem(STORE.points); localStorage.removeItem(STORE.alerts); location.reload(); };
+        document.querySelectorAll('.sect-h').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+        document.querySelectorAll('.theme-opt').forEach(o => o.addEventListener('click', () => applyTheme(o.dataset.theme)));
+    }
+
+    function init() {
+        loadAll();
+        applyTheme(load(STORE.theme, 'default'));
+        const appTitle = (config.appTitle || '万能配置台').slice(0, 5);
+        $('appTitleText').textContent = appTitle;
+        $('inputAppTitle').value = config.appTitle === '万能配置台' ? '' : (config.appTitle || '');
+        $('deviceNameDisplay').textContent = config.deviceName || '未配置';
+        $('inputProductId').value = config.productId || '';
+        $('inputDeviceName').value = config.deviceName || '';
+        $('inputToken').value = config.token || '';
+        renderPointList(); renderAlertList(); renderCards();
+        bindEvents();
+        fetchDeviceStatus(); fetchProperties();
+        refreshTimer = setInterval(() => { fetchDeviceStatus(); fetchProperties(); }, 10000);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
+</script>
+</body>
+</html>
