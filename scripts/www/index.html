@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中移物联 · 万能配置台 v19</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+        --primary: #3399dd;
+        --line: #c8d8e8;
+        --muted: #5a7a9a;
+        --title: #1a3550;
+        --danger: #e05555;
+        --ok: #4caf50;
+        --warn: #ff9800;
+        --bg: #dce8f5;
+        --surface: #ffffff;
+        --surface-2: #fbfdff;
+        --surface-3: #eef4fa;
+        --accent-soft: #e6f0fb;
+        --accent-ink: #1565c0;
+        --card-border: #eef3f9;
+        --item-border: #e8f0f7;
+        --text-faint: #8ca3b8;
+        --switch-off: #c0d0e0;
+        --glass: none;
+        --glass-solid: #ffffff;
+    }
+    body[data-theme="dark-amber"],
+    body[data-theme="dark-slateblue"],
+    body[data-theme="dark-emerald"] {
+        --line: #2c3a55;
+        --muted: #93a3bd;
+        --title: #e2e6ed;
+        --bg: #141822;
+        --surface: rgba(255,255,255,0.08);
+        --surface-2: rgba(255,255,255,0.06);
+        --surface-3: rgba(255,255,255,0.10);
+        --card-border: rgba(255,255,255,0.12);
+        --item-border: rgba(255,255,255,0.10);
+        --text-faint: #7e8fa8;
+        --switch-off: #2f3a52;
+        --glass: blur(14px);
+        --glass-solid: #1b2230;
+    }
+    body[data-theme="dark-amber"] {
+        --primary: #b88c58;
+        --accent-soft: rgba(184,140,88,0.18);
+        --accent-ink: #e2c19a;
+    }
+    body[data-theme="dark-slateblue"] {
+        --primary: #5984bc;
+        --accent-soft: rgba(89,132,188,0.20);
+        --accent-ink: #a9c4e8;
+    }
+    body[data-theme="dark-emerald"] {
+        --primary: #489978;
+        --accent-soft: rgba(72,153,120,0.20);
+        --accent-ink: #a6d6c0;
+    }
+    body[data-theme="light-mintsoft"] {
+        --primary: #529e7c;
+        --line: #c4e0d2;
+        --muted: #5a7a6c;
+        --title: #1a3a2e;
+        --bg: #eaf5ef;
+        --surface: #ffffff;
+        --surface-2: #f5fbf7;
+        --surface-3: #e5f4ec;
+        --accent-soft: #d9efe4;
+        --accent-ink: #2d7a58;
+        --card-border: #dcefe6;
+        --item-border: #d2e9de;
+        --text-faint: #7aa592;
+        --switch-off: #c2d8cc;
+        --glass: none;
+        --glass-solid: #ffffff;
+    }
+    body.dark .card.alarm { background: rgba(224,85,85,0.16); border-color: rgba(224,85,85,0.35); }
+    body.dark .tag.ok { background: #16301c; color: #7bc98a; }
+    body.dark .tag.err { background: #3a1a1a; color: #ff9a9a; }
+    body.dark .tag.unknown { background: #232d47; color: #8fa2c0; }
+    body.dark .badge.sensor { background: #23304a; color: var(--accent-ink); }
+    body.dark .badge.controller { background: #3a2c1a; color: #ffb066; }
+    body.dark .badge.type { background: #232d47; color: #93a3bd; }
+    body.dark .alert-banner { background: #3a1a1a; color: #ff9a9a; border-color: #5a2a2a; }
+    body.dark .alert-item { background: #2a1a1a; }
+    body.dark .alert-item .a-t { color: #ff9a9a; }
+    body.dark .alert-item .a-d { color: #b08a8a; }
+    body.dark .modal-x { background: #232d47; color: #e2e6ed; }
+    body.dark #addControllerBtn { background: #3a2c1a !important; color: #ffb066 !important; }
+    body.dark { background-image: radial-gradient(1200px 480px at 50% -160px, #ffffff12, transparent); }
+    body.dark .filter-tab { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #93a3bd; }
+    body.dark .filter-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    body.dark .export-range-btn { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #93a3bd; }
+    body.dark .export-range-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    body {
+        background: var(--bg);
+        background-image: radial-gradient(1200px 480px at 50% -160px, #ffffff2e, transparent);
+        font-family: system-ui, -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+        padding: 16px;
+        padding-bottom: 28px;
+        color: var(--title);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+    }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    .topbar {
+        background: var(--surface);
+        backdrop-filter: var(--glass);
+        -webkit-backdrop-filter: var(--glass);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        box-shadow: 0 6px 20px #00000010;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .topbar .brand .t { font-size: 18px; font-weight: 700; white-space: nowrap; }
+    .topbar .brand .sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar .conn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .topbar .actions { display: flex; gap: 8px; flex: none; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; transition: background .3s; }
+    .conn-pill {
+        display: inline-flex; align-items: center; gap: 7px;
+        background: var(--surface-3); padding: 6px 13px; border-radius: 22px;
+        font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap;
+    }
+    .btn {
+        border: none; border-radius: 11px; padding: 9px 14px;
+        font-size: 14px; background: var(--surface-3); color: var(--title); white-space: nowrap;
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: transform .12s, background .15s, opacity .15s;
+        cursor: pointer;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .btn.success { background: var(--ok); color: #fff; }
+    .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+    .btn:disabled { opacity: .45; pointer-events: none; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .alert-banner {
+        background: #fdecea; color: #b3261e;
+        border: 1px solid #f5c6c6; border-radius: 12px;
+        padding: 10px 14px; margin-bottom: 14px; font-size: 14px;
+        display: none; align-items: center; gap: 8px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+        padding: 2px 0;
+    }
+    .filter-tab {
+        flex: 1 1 0;
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 9px 10px;
+        border-radius: 22px;
+        border: 1.5px solid var(--line);
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
+    }
+    .filter-tab i { font-size: 13px; flex: none; }
+    .filter-tab .tab-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .filter-tab .tab-count {
+        background: var(--surface-3);
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        flex: none;
+    }
+    .filter-tab.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .filter-tab.active .tab-count { background: rgba(255,255,255,.25); color: #fff; }
+    .filter-tab:active { transform: scale(.96); }
+
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
+    .group { margin-bottom: 20px; }
+    .group-h {
+        display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700;
+        color: var(--title); margin: 2px 4px 10px;
+    }
+    .group-h i { color: var(--primary); }
+    .group-count {
+        font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface-3);
+        padding: 2px 9px; border-radius: 20px;
+    }
+    .group-h { cursor: pointer; user-select: none; }
+    .group-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .group-h .chev { font-size: 13px; color: var(--muted); transition: transform .2s; }
+    .group.collapsed .chev { transform: rotate(-90deg); }
+    .group.collapsed > .grid { display: none; }
+    .group.locked .group-h { cursor: default; }
+    .lock-btn {
+        width: 26px; height: 26px; border-radius: 50%; border: none; flex: none;
+        background: var(--surface-3); color: var(--muted); cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 12px;
+        transition: background .15s, color .15s;
+    }
+    .lock-btn i { color: inherit; }
+    .lock-btn.on { background: var(--primary); color: #fff; }
+    .card {
+        background: var(--surface); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
+        border-radius: 18px; padding: 16px 12px 14px;
+        box-shadow: 0 4px 14px #0000000d; position: relative; text-align: center;
+        border: 1px solid var(--card-border);
+        min-height: 128px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+        transition: transform .16s, box-shadow .16s;
+        overflow: hidden;
+    }
+    .card::before {
+        content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 3px;
+        border-radius: 0 0 3px 3px; background: var(--accent, var(--primary)); opacity: .9;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px #00000018; }
+    .card .ico {
+        width: 46px; height: 46px; border-radius: 14px;
+        background: linear-gradient(145deg, var(--accent, var(--primary)), var(--primary));
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 2px; box-shadow: 0 5px 12px rgba(0,0,0,.16);
+    }
+    .card .ico i { font-size: 20px; color: #fff; }
+    .card .nm { font-size: 14px; color: var(--title); font-weight: 600; }
+    .card .vrow { display: flex; align-items: baseline; gap: 3px; justify-content: center; }
+    .card .val { font-size: 24px; font-weight: 700; color: var(--title); word-break: break-all; line-height: 1.1; }
+    .card .unit { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .card .tag {
+        font-size: 11px; padding: 3px 10px; border-radius: 20px;
+        background: var(--surface-3); color: var(--muted); margin-top: 3px; font-weight: 600;
+    }
+    .card .tag.ok { background: #e6f4e6; color: #2e7d32; }
+    .card .tag.err { background: #fdecea; color: #b3261e; }
+    .card .tag.unknown { background: var(--surface-3); color: var(--text-faint); }
+    .card.alarm { background: #fff7f7; border-color: #f5c6c6; }
+    .card.alarm .val { color: var(--danger); }
+    .card.mode-sensor .val { font-size: 23px; font-weight: 700; }
+    .card.mode-sensor .ico { border-radius: 14px; }
+    .card.mode-controller {
+        flex-direction: row; align-items: center; justify-content: flex-start;
+        text-align: left; gap: 12px; padding: 12px 14px; min-height: 70px;
+        border: none; box-shadow: none; background: var(--surface-2); border-radius: 14px;
+    }
+    .card.mode-controller::before {
+        top: 14px; bottom: 14px; left: 0; right: auto; width: 3px; height: auto;
+        border-radius: 0 3px 3px 0;
+    }
+    .card.mode-controller .ico { width: 42px; height: 42px; border-radius: 50%; margin: 0; flex: none; }
+    .card.mode-controller .cmeta { flex: none; max-width: 40%; min-width: 0; }
+    .card.mode-controller .nm { font-size: 14px; font-weight: 700; color: var(--title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card.mode-controller .cunit { font-size: 11px; color: var(--muted); }
+
+    .hist-ico {
+        position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
+        border-radius: 50%; background: var(--surface-3); display: flex; align-items: center;
+        justify-content: center; font-size: 13px; color: var(--primary); cursor: pointer;
+    }
+
+    .ctrl-inner { flex: 1; min-width: 0; margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .switch-btn {
+        width: 100%; padding: 12px 18px; border: none; border-radius: 26px;
+        background: var(--switch-off); color: #fff; cursor: pointer; flex: none;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+        transition: background .3s, transform .12s, box-shadow .2s;
+    }
+    .switch-btn.on { background: var(--accent, var(--primary)); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+    .switch-btn:active { transform: scale(.95); }
+    .switch-btn i { font-size: 15px; }
+    .select-box, .input-box, .textarea-box {
+        width: 100%; border: 1px solid var(--line); border-radius: 9px;
+        padding: 8px 10px; font-size: 14px; background: var(--surface-2); color: var(--title); outline: none;
+    }
+    .select-box:focus, .input-box:focus { border-color: var(--primary); }
+    .slider-val { display: flex; align-items: baseline; gap: 4px; justify-content: center; }
+    .slider-val .sval { font-size: 20px; font-weight: 800; color: var(--title); }
+    .slider-val .unit { font-size: 12px; color: var(--muted); }
+    .range { width: 100%; height: 22px; accent-color: var(--accent, var(--primary)); cursor: pointer; }
+    .stepper { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .stepper .range { flex: 1; width: auto; min-width: 0; }
+    .step-btn {
+        width: 32px; height: 32px; border-radius: 50%; border: none; flex: none;
+        background: var(--surface-3); color: var(--title); font-size: 18px; font-weight: 700; line-height: 1;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: background .15s, transform .1s, color .15s;
+    }
+    .step-btn:active { transform: scale(.88); background: var(--accent-soft); color: var(--accent-ink); }
+    .send-ic {
+        width: 34px; height: 34px; border-radius: 50%; border: none; flex: none;
+        background: var(--accent, var(--primary)); color: #fff; font-size: 14px;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: transform .12s, opacity .15s;
+    }
+    .send-ic:active { transform: scale(.92); }
+    .input-row { display: flex; gap: 6px; width: 100%; align-items: center; }
+    .ctrl-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .points-actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .points-actions .btn { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+    @media (max-width: 520px) {
+        .points-actions { flex-wrap: nowrap; }
+        .points-actions .btn { flex: 1; min-width: 0; padding-left: 6px; padding-right: 6px; font-size: 13px; }
+    }
+
+    .settings-head {
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; box-shadow: 0 6px 20px #00000010;
+        padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .settings-head h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .settings-head h1 i { color: var(--primary); }
+    .sect {
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; box-shadow: 0 6px 20px #00000010;
+        padding: 16px; margin-bottom: 16px;
+    }
+    .sect-h {
+        font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+        margin-bottom: 14px; cursor: pointer;
+    }
+    .sect-h i:first-child { color: var(--primary); }
+    .sect-h .chev { margin-left: auto; font-size: 13px; color: var(--muted); transition: transform .2s; }
+    .sect-body { display: none; }
+    .sect.open .sect-body { display: block; }
+    .sect.open .chev { transform: rotate(180deg); }
+    .field { margin-bottom: 10px; }
+    .flabel { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .finput {
+        width: 100%; border: 1px solid var(--line); border-radius: 10px;
+        padding: 10px 13px; font-size: 15px; color: var(--title); outline: none; background: var(--surface);
+    }
+    .finput:focus { border-color: var(--primary); }
+    textarea.finput { resize: vertical; }
+    .row2 { display: flex; gap: 10px; }
+    .row2 > * { flex: 1; }
+
+    .icon-grid {
+        display: flex; flex-wrap: wrap; gap: 6px; max-height: 128px; overflow-y: auto;
+        border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--surface-2);
+    }
+    .icon-cell {
+        width: 40px; height: 40px; border-radius: 9px; border: 2px solid transparent;
+        background: var(--surface-2); display: flex; align-items: center; justify-content: center;
+        font-size: 18px; color: var(--title); cursor: pointer; flex: none;
+    }
+    .icon-cell.sel { border-color: var(--primary); background: var(--accent-soft); color: var(--primary); }
+    .color-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+    .color-cell {
+        width: 36px; height: 36px; border-radius: 9px; border: 3px solid transparent;
+        cursor: pointer; position: relative; flex: none;
+    }
+    .color-cell.sel { border-color: var(--title); box-shadow: 0 0 0 2px var(--surface) inset; }
+
+    .point-item {
+        display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+        border: 1px solid var(--item-border); border-radius: 12px; margin-bottom: 8px; background: var(--surface-2);
+    }
+    .point-item .order-num {
+        width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent-ink);
+        font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+    }
+    .point-item .pi-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; flex: none; background: var(--primary); }
+    .point-item .pi-meta { flex: 1; min-width: 0; }
+    .point-item .pi-meta .n-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px; }
+    .point-item .pi-meta .n { font-size: 15px; font-weight: 600; }
+    .point-item .pi-meta .k { font-size: 12px; color: var(--muted); word-break: break-all; }
+    .point-item .pi-actions { display: flex; align-items: center; gap: 5px; flex: none; }
+    .point-item .sort-btns { display: flex; flex-direction: column; gap: 2px; }
+    .point-item .sort-btns .btn.small { padding: 3px 7px; font-size: 11px; }
+    .point-item .pi-actions > .btn.small { padding: 6px 9px; }
+    .badge {
+        font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--surface-3); color: var(--muted); white-space: nowrap;
+    }
+    .badge.type { background: var(--surface-3); color: var(--muted); }
+    .badge.sensor { background: var(--accent-soft); color: var(--accent-ink); }
+    .badge.controller { background: #fff3e0; color: #e65100; }
+    .point-item.hidden { opacity: .55; }
+    .point-item .btn.eye-off { color: var(--text-faint); }
+
+    .alert-item {
+        display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px;
+        background: #fdecea; border-radius: 10px; margin-bottom: 8px; font-size: 13px;
+    }
+    .alert-item .a-t { color: #b3261e; font-weight: 600; }
+    .alert-item .a-d { color: #8a6d6d; font-size: 12px; }
+    .empty-tip { text-align: center; color: var(--text-faint); font-size: 13px; padding: 20px 0; }
+    .empty-tip i { display: block; font-size: 34px; margin-bottom: 8px; color: var(--item-border); }
+
+    .backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,.5);
+        display: flex; align-items: center; justify-content: center; z-index: 9998;
+    }
+    .modal {
+        background: var(--surface); border-radius: 16px; width: 92%; max-width: 560px;
+        max-height: 88vh; overflow-y: auto; padding: 18px;
+    }
+    .modal-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-h h3 { font-size: 18px; }
+    .modal-x { background: var(--surface-3); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--title); cursor: pointer; }
+    .modal-foot { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-foot .btn { flex: 1; justify-content: center; padding: 12px; }
+    .cur-val {
+        font-size: 14px; font-weight: 700; color: var(--primary); padding: 6px 12px;
+        background: var(--accent-soft); border-radius: 8px; display: inline-block; margin-bottom: 8px;
+    }
+
+    #chartTip { text-align: center; font-size: 13px; color: var(--text-faint); margin-top: 6px; }
+    .hist-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; row-gap: 8px; margin-bottom: 10px; }
+    .hist-ranges { display: flex; gap: 6px; }
+    .hr-btn {
+        border: 1px solid var(--line); border-radius: 18px; padding: 5px 14px;
+        background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
+        transition: background .15s, color .15s, border-color .15s;
+    }
+    .hr-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .export-section {
+        margin-top: 12px;
+        border-top: 1px solid var(--item-border);
+        padding-top: 12px;
+    }
+    .export-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--title);
+        margin-bottom: 10px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .export-header i { color: var(--primary); }
+    .export-header .chev { margin-left: auto; font-size: 12px; color: var(--muted); transition: transform .2s; }
+    .export-body { display: none; }
+    .export-section.open .export-body { display: block; }
+    .export-section.open .chev { transform: rotate(180deg); }
+    .export-range-select { display: flex; gap: 6px; margin-bottom: 10px; }
+    .export-range-btn {
+        flex: 1;
+        padding: 7px 4px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+        text-align: center;
+    }
+    .export-range-btn.active {
+        border-color: var(--primary);
+        background: var(--accent-soft);
+        color: var(--primary);
+    }
+    .export-actions { display: flex; gap: 6px; }
+    .export-actions .btn { flex: 1; justify-content: center; padding: 10px; font-size: 14px; }
+    .export-data-count { font-size: 11px; color: var(--text-faint); margin-bottom: 8px; text-align: center; }
+
+    .toast {
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: var(--primary); color: #fff; padding: 11px 24px; border-radius: 24px;
+        font-size: 15px; font-weight: 700; z-index: 99999; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.3);
+        max-width: 90%;
+        text-align: center;
+        word-break: break-all;
+    }
+
+    .theme-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+    .theme-opt {
+        flex: 1; min-width: 100px; border: 2px solid var(--line); border-radius: 14px;
+        background: var(--surface); padding: 12px 10px; cursor: pointer; color: var(--title);
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        transition: border-color .15s, transform .15s;
+    }
+    .theme-opt:hover { transform: translateY(-2px); }
+    .theme-opt.active { border-color: var(--primary); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .theme-swatch { display: flex; gap: 4px; }
+    .theme-swatch i { width: 26px; height: 26px; border-radius: 7px; border: 1px solid rgba(0,0,0,.1); }
+    .theme-swatch.amber i:nth-child(1) { background: #141822; }
+    .theme-swatch.amber i:nth-child(2) { background: #1b2230; }
+    .theme-swatch.amber i:nth-child(3) { background: #b88c58; }
+    .theme-swatch.slateblue i:nth-child(1) { background: #141822; }
+    .theme-swatch.slateblue i:nth-child(2) { background: #1b2230; }
+    .theme-swatch.slateblue i:nth-child(3) { background: #5984bc; }
+    .theme-swatch.emerald i:nth-child(1) { background: #141822; }
+    .theme-swatch.emerald i:nth-child(2) { background: #1b2230; }
+    .theme-swatch.emerald i:nth-child(3) { background: #489978; }
+    .theme-swatch.classic i:nth-child(1) { background: #dce8f5; }
+    .theme-swatch.classic i:nth-child(2) { background: #ffffff; }
+    .theme-swatch.classic i:nth-child(3) { background: #3399dd; }
+    .theme-swatch.mintsoft i:nth-child(1) { background: #eaf5ef; }
+    .theme-swatch.mintsoft i:nth-child(2) { background: #ffffff; }
+    .theme-swatch.mintsoft i:nth-child(3) { background: #529e7c; }
+    .theme-name { font-size: 13px; color: var(--title); font-weight: 600; }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .topbar, .card { background: var(--glass-solid); }
+    }
+
+    @media (max-width: 840px) {
+        .grid { grid-template-columns: repeat(2, 1fr); }
+        .ctrl-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+        .grid { gap: 10px; }
+        body { padding: 10px; padding-bottom: 20px; }
+        .topbar { position: sticky; top: 0; z-index: 9994; flex-wrap: nowrap; gap: 8px; padding: 10px 12px; }
+        .topbar .brand { flex: 1 1 auto; min-width: 0; }
+        .topbar .brand .t { font-size: 16px; }
+        .topbar .brand .sub { font-size: 11px; }
+        .topbar .conn { margin-left: auto; flex: none; }
+        .conn-pill { padding: 5px 10px; font-size: 12px; }
+        .topbar .actions .lbl { display: none; }
+        .topbar .actions .btn { padding: 9px 11px; border-radius: 10px; }
+        .card { min-height: 116px; padding: 14px 10px; border-radius: 14px; }
+        .card.mode-controller { min-height: 60px; padding: 10px 12px; }
+        .filter-tabs { gap: 4px; margin-bottom: 12px; padding: 2px 0; }
+        .filter-tab { padding: 8px 4px; font-size: 11px; border-radius: 18px; gap: 2px; }
+        .filter-tab i { font-size: 11px; }
+        .filter-tab .tab-count { font-size: 9px; min-width: 16px; height: 16px; border-radius: 8px; padding: 0 4px; }
+    }
+    @media (max-width: 360px) {
+        .filter-tab { font-size: 10px; padding: 7px 2px; gap: 1px; }
+        .filter-tab i { font-size: 10px; }
+        .filter-tab .tab-count { font-size: 8px; min-width: 14px; height: 14px; border-radius: 7px; padding: 0 3px; }
+    }
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<div id="homePage" class="page active">
+    <div class="topbar">
+        <div class="brand">
+            <div>
+                <div class="t"><span id="appTitleText">万能配置台</span></div>
+                <div class="sub">设备：<span id="deviceNameDisplay">未配置</span></div>
+            </div>
+        </div>
+        <div class="conn">
+            <span class="conn-pill"><span class="dot" id="statusDot"></span><span id="statusText">未连接</span></span>
+        </div>
+        <div class="actions">
+            <button class="btn" id="refreshBtn" title="刷新"><i class="fa fa-refresh"></i><span class="lbl">刷新</span></button>
+            <button class="btn primary" id="goSettingsBtn" title="设置"><i class="fa fa-gear"></i><span class="lbl">设置</span></button>
+        </div>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+        <i class="fa fa-exclamation-triangle"></i>
+        <span id="alertBannerText"></span>
+    </div>
+
+    <div class="filter-tabs" id="filterTabs">
+        <button type="button" class="filter-tab active" data-filter="all">
+            <i class="fa fa-th-large"></i> <span class="tab-text">全部</span> <span class="tab-count" id="countAll">0</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="sensor">
+            <i class="fa fa-download"></i> <span class="tab-text">传感器</span> <span class="tab-count" id="countSensor">0</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="switch">
+            <i class="fa fa-power-off"></i> <span class="tab-text">开关</span> <span class="tab-count" id="countSwitch">0</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="number">
+            <i class="fa fa-sliders"></i> <span class="tab-text">数值</span> <span class="tab-count" id="countNumber">0</span>
+        </button>
+        <button type="button" class="filter-tab" data-filter="other">
+            <i class="fa fa-cog"></i> <span class="tab-text">其它</span> <span class="tab-count" id="countOther">0</span>
+        </button>
+    </div>
+
+    <div id="cardGrid"></div>
+
+    <div style="text-align:center;font-size:13px;color:var(--muted);padding:6px 0 20px;">
+        <i class="fa fa-refresh"></i> 数据每 10 秒自动刷新
+    </div>
+</div>
+
+<div id="settingsPage" class="page">
+    <div class="settings-head">
+        <button class="btn primary" id="backHomeBtn"><i class="fa fa-arrow-left"></i> 返回</button>
+        <h1><i class="fa fa-gear"></i> 设置</h1>
+    </div>
+
+    <div class="sect" id="sectTheme">
+        <div class="sect-h"><i class="fa fa-paint-brush"></i> 界面皮肤 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="theme-grid" id="themeGrid">
+                <button type="button" class="theme-opt" data-theme="dark-amber">
+                    <span class="theme-swatch amber"><i></i><i></i><i></i></span>
+                    <span class="theme-name">深色·暖琥珀</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="dark-slateblue">
+                    <span class="theme-swatch slateblue"><i></i><i></i><i></i></span>
+                    <span class="theme-name">深色·灰蓝科技</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="dark-emerald">
+                    <span class="theme-swatch emerald"><i></i><i></i><i></i></span>
+                    <span class="theme-name">深色·墨绿沉静</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="default">
+                    <span class="theme-swatch classic"><i></i><i></i><i></i></span>
+                    <span class="theme-name">浅色·经典灰蓝</span>
+                </button>
+                <button type="button" class="theme-opt" data-theme="light-mintsoft">
+                    <span class="theme-swatch mintsoft"><i></i><i></i><i></i></span>
+                    <span class="theme-name">浅色·奶白橄榄</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sect" id="sectApp">
+        <div class="sect-h"><i class="fa fa-header"></i> 应用名称 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="field">
+                <div class="flabel">主页标题（最多 8 个字）</div>
+                <input class="finput" id="inputAppTitle" maxlength="8" placeholder="请输入标题（≤8字）">
+            </div>
+            <div style="font-size:12px;color:var(--muted);">留空则显示默认「万能配置台」。</div>
+        </div>
+    </div>
+
+    <div class="sect" id="sectHomeFilter">
+        <div class="sect-h"><i class="fa fa-filter"></i> 主页分类显示 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="field">
+                <div class="flabel">默认显示的分类</div>
+                <select class="finput" id="inputDefaultFilter">
+                    <option value="all">全部</option>
+                    <option value="sensor">传感器</option>
+                    <option value="switch">开关</option>
+                    <option value="number">数值调节</option>
+                    <option value="other">其它控制</option>
+                </select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                    <input type="checkbox" id="inputShowFilterTabs" checked style="width:18px;height:18px;accent-color:var(--primary);"> 在主页显示分类筛选标签
+                </label>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">关闭后主页将只显示默认分类内容，不显示筛选标签。</p>
+        </div>
+    </div>
+
+    <div class="sect" id="sectPlatform">
+        <div class="sect-h"><i class="fa fa-cloud"></i> OneNet 平台配置 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="field"><div class="flabel">产品 ID（Product ID）</div><input class="finput" id="inputProductId" placeholder="请输入产品 ID"></div>
+            <div class="field"><div class="flabel">设备名称（Device Name）</div><input class="finput" id="inputDeviceName" placeholder="请输入设备名称"></div>
+            <div class="field"><div class="flabel">鉴权 Token（Authorization）</div><input class="finput" id="inputToken" type="password" placeholder="以 version=... 开头，请完整复制"></div>
+            <div class="row2">
+                <button class="btn primary" id="saveConfigBtn" style="justify-content:center;"><i class="fa fa-save"></i> 保存并连接</button>
+                <button class="btn danger" id="clearConfigBtn" style="justify-content:center;"><i class="fa fa-trash"></i> 清除</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sect" id="sectPoints">
+        <div class="sect-h"><i class="fa fa-database"></i> 数据模型（数据点）<i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div class="points-actions">
+                <button class="btn primary" id="addSensorBtn"><i class="fa fa-plus"></i> 传感器</button>
+                <button class="btn" id="addControllerBtn" style="background:#fff3e0;color:#e65100;"><i class="fa fa-plus"></i> 控制器</button>
+                <button class="btn" id="importBtn"><i class="fa fa-upload"></i> 导入物模型</button>
+            </div>
+            <div id="pointList"></div>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">提示：列表开头的数字即首页显示顺序，可用 ↑↓ 调整，或在编辑页设置"排序号"（越小越靠前）。</p>
+        </div>
+    </div>
+
+    <div class="sect" id="sectAlerts">
+        <div class="sect-h"><i class="fa fa-bell"></i> 报警记录 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <div style="text-align:right;margin-bottom:8px;">
+                <button class="btn small danger" id="clearAlertsBtn"><i class="fa fa-trash"></i> 清空记录</button>
+            </div>
+            <div id="alertList"></div>
+        </div>
+    </div>
+
+    <div class="sect" id="sectReset">
+        <div class="sect-h"><i class="fa fa-wrench"></i> 数据管理 <i class="fa fa-chevron-down chev"></i></div>
+        <div class="sect-body">
+            <button class="btn danger" id="resetBtn" style="justify-content:center;width:100%;"><i class="fa fa-eraser"></i> 恢复默认 / 清除缓存</button>
+        </div>
+    </div>
+</div>
+
+<div class="backdrop" id="pointModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3 id="pointModalTitle">添加数据点</h3>
+            <button class="modal-x" id="pointModalClose">&times;</button>
+        </div>
+        <div class="field"><div class="flabel">内部 ID（英文，唯一）*</div><input class="finput" id="pId" placeholder="如 temp1"></div>
+        <div class="field"><div class="flabel">显示名称（中文）*</div><input class="finput" id="pName" placeholder="如 机房温度"></div>
+        <div class="field"><div class="flabel">OneNet 云端标识符（Cloud Key）*</div><input class="finput" id="pKey" placeholder="与物模型标识符一字不差"></div>
+        <div class="row2">
+            <div class="field">
+                <div class="flabel">读写模式</div>
+                <select class="finput" id="pMode">
+                    <option value="sensor">传感器（只读）</option>
+                    <option value="controller">控制器（可下发）</option>
+                </select>
+            </div>
+            <div class="field">
+                <div class="flabel">数据类型 *</div>
+                <select class="finput" id="pType"></select>
+            </div>
+        </div>
+        <div class="row2">
+            <div class="field">
+                <div class="flabel">单位（可选）</div>
+                <input class="finput" id="pUnit" list="unitList" placeholder="如 ℃、%RH、V...">
+                <datalist id="unitList">
+                    <option value="℃"></option><option value="°F"></option><option value="%RH"></option>
+                    <option value="V"></option><option value="mV"></option><option value="A"></option>
+                    <option value="mA"></option><option value="W"></option><option value="kW"></option>
+                    <option value="kWh"></option><option value="lx"></option><option value="rpm"></option>
+                    <option value="mg/L"></option><option value="mg/kg"></option><option value="μg/m³"></option>
+                    <option value="pH"></option><option value="dB"></option><option value="Hz"></option>
+                    <option value="ppm"></option><option value="kPa"></option><option value="Pa"></option>
+                    <option value="hPa"></option><option value="m"></option><option value="cm"></option>
+                    <option value="mm"></option><option value="s"></option><option value="min"></option>
+                    <option value="h"></option><option value="m/s"></option><option value="t"></option>
+                    <option value="kg"></option><option value="g"></option>
+                </datalist>
+            </div>
+            <div class="field">
+                <div class="flabel">排序号（越小越靠前）</div>
+                <input class="finput" id="pOrder" type="number" min="0" step="1" placeholder="自动排最后">
+            </div>
+        </div>
+        <div class="field">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                <input type="checkbox" id="pVisible" checked style="width:18px;height:18px;accent-color:var(--primary);"> 在首页显示
+            </label>
+        </div>
+        <div class="field">
+            <div class="flabel">图标（点击选择）</div>
+            <div class="icon-grid" id="pIconGrid"></div>
+        </div>
+        <div class="field">
+            <div class="flabel">颜色（点击选择）</div>
+            <div class="color-grid" id="pColorGrid"></div>
+        </div>
+        <div class="field" id="enumField" style="display:none;">
+            <div class="flabel">枚举选项（逗号分隔）</div>
+            <input class="finput" id="pEnum" placeholder="如 关闭,开启,自动">
+        </div>
+        <div id="thresholdField">
+            <div class="row2">
+                <div class="field"><div class="flabel" id="pMinLabel">最小值（可选）</div><input class="finput" id="pMin" type="number" step="any" placeholder="留空默认 0"></div>
+                <div class="field"><div class="flabel" id="pMaxLabel">最大值（可选）</div><input class="finput" id="pMax" type="number" step="any" placeholder="留空默认 100"></div>
+            </div>
+            <div class="field" id="stepField"><div class="flabel">步进（可选）</div><input class="finput" id="pStep" type="number" step="any" min="0" placeholder="留空按类型自动"></div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn" id="pointSaveBtn"><i class="fa fa-check"></i> 保存</button>
+            <button class="btn" id="pointCancelBtn"><i class="fa fa-times"></i> 取消</button>
+        </div>
+    </div>
+</div>
+
+<div class="backdrop" id="importModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3><i class="fa fa-upload" style="color:var(--primary);"></i> 导入平台物模型</h3>
+            <button class="modal-x" id="importModalClose">&times;</button>
+        </div>
+        <div class="field">
+            <div class="flabel">选择 OneNet 物模型导出的 .json 文件</div>
+            <input type="file" id="importFileInput" accept=".json,application/json" class="finput">
+        </div>
+        <div class="flabel" style="margin:6px 0 4px;">或直接粘贴 JSON 内容</div>
+        <textarea id="importText" class="finput" rows="9" style="font-size:12px;font-family:Consolas,monospace;" placeholder='{"version":"1.0","properties":[{"identifier":"...","name":"...","accessMode":"rw","dataType":{"type":"float","specs":{"unit":"℃"}}}]}'></textarea>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">适配规则：identifier → 云端标识符；accessMode（r=传感器 / rw·w=控制器）；dataType.type → 数据类型；specs.unit → 单位。已存在的云端标识符将被更新。</p>
+        <div class="modal-foot">
+            <button class="btn primary" id="importParseBtn"><i class="fa fa-check"></i> 解析并导入</button>
+            <button class="btn" id="importCancelBtn"><i class="fa fa-times"></i> 取消</button>
+        </div>
+    </div>
+</div>
+
+<div class="backdrop" id="historyModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-h">
+            <h3 id="histTitle">历史数据</h3>
+            <button class="modal-x" id="histClose">&times;</button>
+        </div>
+        <div id="histBadge" style="font-size:12px;color:var(--muted);margin-bottom:6px;"></div>
+        <div id="histSource" style="font-size:12px;color:var(--text-faint);margin-bottom:6px;"></div>
+        <div class="hist-toolbar">
+            <div class="hist-ranges" id="histRanges">
+                <button type="button" class="hr-btn" data-range="3600000">1小时</button>
+                <button type="button" class="hr-btn active" data-range="86400000">1天</button>
+                <button type="button" class="hr-btn" data-range="604800000">7天</button>
+            </div>
+        </div>
+        <div id="histCur" class="cur-val">当前值：--</div>
+        <div id="histChart" style="width:100%;height:240px;"></div>
+        <div id="chartTip"></div>
+
+        <div class="export-section" id="exportSection">
+            <div class="export-header" id="exportHeader">
+                <i class="fa fa-download"></i> 导出历史数据
+                <i class="fa fa-chevron-down chev"></i>
+            </div>
+            <div class="export-body">
+                <div class="export-range-select" id="exportRangeSelect">
+                    <button type="button" class="export-range-btn" data-export-range="3600000">1小时</button>
+                    <button type="button" class="export-range-btn active" data-export-range="86400000">1天</button>
+                    <button type="button" class="export-range-btn" data-export-range="604800000">7天</button>
+                </div>
+                <div class="export-data-count" id="exportDataCount">选择时间范围后点击导出</div>
+                <div class="export-actions">
+                    <button class="btn success" id="exportCsvBtn"><i class="fa fa-file-excel-o"></i> 导出 CSV</button>
+                    <button class="btn primary" id="exportJsonBtn"><i class="fa fa-file-code-o"></i> 导出 JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const DATA_TYPES = {
+        int32:  { label: '整数型 int32',   kind: 'number', writable: true,  plottable: true,  decimals: 0 },
+        int64:  { label: '长整数型 int64', kind: 'number', writable: true,  plottable: true,  decimals: 0 },
+        float:  { label: '单精度浮点型 float', kind: 'number', writable: true, plottable: true, decimals: 2 },
+        double: { label: '双精度浮点型 double', kind: 'number', writable: true, plottable: true, decimals: 4 },
+        enum:   { label: '枚举 enum',      kind: 'enum',   writable: true,  plottable: false, decimals: 0 },
+        bool:   { label: '布尔 bool',      kind: 'bool',   writable: true,  plottable: false, decimals: 0 },
+        string: { label: '字符串 string',  kind: 'string', writable: true,  plottable: false, decimals: 0 },
+        bitMap: { label: '位图 bitMap',    kind: 'string', writable: true,  plottable: false, decimals: 0 },
+        struct: { label: '结构体 struct',  kind: 'json',   writable: false, plottable: false, decimals: 0 },
+        array:  { label: '数组 array',     kind: 'json',   writable: false, plottable: false, decimals: 0 },
+        date:   { label: '时间 date',      kind: 'date',   writable: true,  plottable: false, decimals: 0 },
+        buffer: { label: '二进制 buffer',  kind: 'string', writable: false, plottable: false, decimals: 0 }
+    };
+
+    const ICONS = [
+        'fa-thermometer-half','fa-tint','fa-bolt','fa-flask','fa-leaf','fa-pagelines',
+        'fa-tree','fa-balance-scale','fa-sun-o','fa-moon-o','fa-tachometer','fa-battery-full',
+        'fa-fire','fa-snowflake-o','fa-cloud','fa-bar-chart','fa-signal','fa-wifi','fa-clock-o',
+        'fa-lightbulb-o','fa-eye','fa-heartbeat','fa-line-chart','fa-area-chart','fa-gears',
+        'fa-industry','fa-home','fa-truck','fa-cube','fa-plug','fa-hdd-o',
+        'fa-power-off','fa-font','fa-code','fa-list-ol'
+    ];
+    const ICON_LABELS = {
+        'fa-thermometer-half':'温度','fa-tint':'湿度/水滴','fa-bolt':'电流/电量','fa-flask':'化学/实验',
+        'fa-leaf':'叶片','fa-pagelines':'植物','fa-tree':'树木','fa-balance-scale':'天平/PH',
+        'fa-sun-o':'光照/太阳','fa-moon-o':'月光','fa-tachometer':'转速/仪表','fa-battery-full':'电池',
+        'fa-fire':'火焰/温度','fa-snowflake-o':'制冷/雪花','fa-cloud':'云','fa-bar-chart':'柱状图',
+        'fa-signal':'信号','fa-wifi':'WiFi','fa-clock-o':'时间','fa-lightbulb-o':'灯光',
+        'fa-eye':'可视/检测','fa-heartbeat':'心跳/健康','fa-line-chart':'折线','fa-area-chart':'面积图',
+        'fa-gears':'设备/档位','fa-industry':'工业/车间','fa-home':'家用','fa-truck':'车辆/运输',
+        'fa-cube':'箱体','fa-plug':'插座/继电器','fa-hdd-o':'存储/硬盘',
+        'fa-power-off':'电源/开关','fa-font':'文本','fa-code':'代码/JSON','fa-list-ol':'列表'
+    };
+    const COLORS = [ '#3399dd','#4caf50','#e05555','#ff9800','#9c27b0','#00bcd4','#795548','#607d8b','#e91e63','#3f51b5','#009688','#ff7043' ];
+
+    const api = {
+        deviceDetail: 'https://iot-api.heclouds.com/device/detail',
+        getProperty:  'https://iot-api.heclouds.com/thingmodel/query-device-property',
+        setProperty:  'https://iot-api.heclouds.com/thingmodel/set-device-property',
+        getHistory:   'https://iot-api.heclouds.com/thingmodel/query-device-property-history'
+    };
+
+    let config = { productId: '', deviceName: '', token: '' };
+    let points = [];
+    let propCache = {};
+    let alerts = [];
+    let alertActive = {};
+    let chartInst = null;
+    let currentHistId = null;
+    let currentHistRange = 86400000;
+    let histBuffer = {};
+    let groupState = {};
+    let editingId = null;
+    let currentIcon = 'fa-thermometer-half';
+    let currentColor = '#3399dd';
+    let refreshTimer = null;
+    let currentFilter = 'all';
+    let currentExportRange = 86400000;
+
+    const STORE = {
+        config: 'cmcc.config',
+        points: 'cmcc.points',
+        alerts: 'cmcc.alerts',
+        theme: 'cmcc.theme',
+        hist:  'cmcc.hist',
+        groups: 'cmcc.groups',
+        homeFilter: 'cmcc.homeFilter'
+    };
+
+    function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+    function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+    let homeFilterSettings = { defaultFilter: 'all', showFilterTabs: true };
+
+    function loadAll() {
+        config = Object.assign({ appTitle: '万能配置台', productId: '', deviceName: '', token: '' }, load(STORE.config, {}));
+        points = load(STORE.points, []);
+        points.forEach(function(p, i) { if (p.order === undefined || p.order === null || isNaN(Number(p.order))) p.order = i; });
+        alerts = load(STORE.alerts, []);
+        histBuffer = load(STORE.hist, {});
+        groupState = load(STORE.groups, {});
+        homeFilterSettings = Object.assign({ defaultFilter: 'all', showFilterTabs: true }, load(STORE.homeFilter, {}));
+        currentFilter = homeFilterSettings.defaultFilter || 'all';
+    }
+
+    function persistPoints() { save(STORE.points, points); }
+    function persistAlerts() { save(STORE.alerts, alerts); }
+    function saveHistBuffer() { save(STORE.hist, histBuffer); }
+    function persistGroups() { save(STORE.groups, groupState); }
+    function persistHomeFilter() { save(STORE.homeFilter, homeFilterSettings); }
+
+    function recordHistory(identifier, value) {
+        if (!identifier || value === undefined || value === null) return;
+        const now = Date.now();
+        const cut = now - 7 * 86400000;
+        let arr = (histBuffer[identifier] || []).filter(function(x) { return x && x.t >= cut; });
+        arr.push({ t: now, v: value });
+        if (arr.length > 1500) arr = arr.slice(arr.length - 1500);
+        histBuffer[identifier] = arr;
+    }
+
+    function ordOf(p) { const n = Number(p.order); return isNaN(n) ? 0 : n; }
+    function sortedPoints() { return points.slice().sort(function(a, b) { return ordOf(a) - ordOf(b); }); }
+    function nextOrder() {
+        const orders = points.map(function(p) { return Number(p.order); }).filter(function(n) { return !isNaN(n); });
+        return (orders.length ? Math.max.apply(null, orders) : -1) + 1;
+    }
+    function renumber() { sortedPoints().forEach(function(p, i) { p.order = i; }); }
+
+    function $(id) { return document.getElementById(id); }
+    function showToast(msg) {
+        const t = $('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        clearTimeout(t._t);
+        t._t = setTimeout(function() { t.style.display = 'none'; }, 4000);
+    }
+    function switchPage(id) {
+        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+        $(id).classList.add('active');
+    }
+
+    const THEME_KEYS = ['default', 'dark-amber', 'dark-slateblue', 'dark-emerald', 'light-mintsoft'];
+    function applyTheme(theme) {
+        const t = THEME_KEYS.indexOf(theme) >= 0 ? theme : 'default';
+        document.body.dataset.theme = t;
+        document.body.classList.toggle('dark', ['dark-amber', 'dark-slateblue', 'dark-emerald'].indexOf(t) >= 0);
+        save(STORE.theme, t);
+        document.querySelectorAll('.theme-opt').forEach(function(o) { o.classList.toggle('active', o.dataset.theme === t); });
+    }
+
+    function renderIconGrid(selected) {
+        $('pIconGrid').innerHTML = ICONS.map(function(ic) {
+            return '<button type="button" class="icon-cell ' + (ic === selected ? 'sel' : '') + '" data-icon="' + ic + '" title="' + (ICON_LABELS[ic] || '') + '"><i class="fa ' + ic + '"></i></button>';
+        }).join('');
+    }
+
+    function renderColorGrid(selected) {
+        $('pColorGrid').innerHTML = COLORS.map(function(c) {
+            return '<button type="button" class="color-cell ' + (c === selected ? 'sel' : '') + '" data-color="' + c + '" style="background:' + c + ';" title="' + c + '"></button>';
+        }).join('');
+    }
+
+    function parseBool(v) { return v === true || v === 1 || v === '1' || v === 'true' || v === 'on'; }
+    function pointById(id) { return points.find(function(p) { return p.id === id; }); }
+    function pointByKey(key) { return points.find(function(p) { return p.cloudKey === key; }); }
+    function typeMeta(t) { return DATA_TYPES[t] || DATA_TYPES.string; }
+
+    function getPointCategory(p) {
+        if (p.mode === 'sensor') return 'sensor';
+        const m = typeMeta(p.type);
+        if (m.kind === 'bool') return 'switch';
+        if (m.kind === 'number') return 'number';
+        return 'other';
+    }
+
+    function fmtNumber(v, meta) {
+        const n = Number(v);
+        if (isNaN(n)) return String(v);
+        if (meta.decimals === 0) return String(Math.round(n));
+        return n.toFixed(meta.decimals);
+    }
+    function numStep(m) { return m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001); }
+    function numBounds(p) {
+        let mn = (p.min !== null && p.min !== undefined && p.min !== '') ? Number(p.min) : null;
+        let mx = (p.max !== null && p.max !== undefined && p.max !== '') ? Number(p.max) : null;
+        if (mn === null || mx === null || !isFinite(mn) || !isFinite(mx) || !(mn < mx)) { mn = 0; mx = 100; }
+        return [mn, mx];
+    }
+    function stepOf(p) {
+        if (p && p.step != null && p.step !== '' && !isNaN(Number(p.step)) && Number(p.step) > 0) return Number(p.step);
+        return numStep(typeMeta(p.type));
+    }
+    function fmtDate(v) {
+        if (v === null || v === undefined || v === '') return '--';
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) {
+            const pad = function(n) { return String(n).padStart(2, '0'); };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+        return String(v);
+    }
+    function formatValue(v, p) {
+        if (v === undefined || v === null || v === '') return '--';
+        const meta = typeMeta(p.type);
+        switch (meta.kind) {
+            case 'number': return fmtNumber(v, meta);
+            case 'bool': {
+                const on = parseBool(v);
+                const bl = p.boolLabels;
+                if (bl && bl[on]) return bl[on];
+                return on ? '开' : '关';
+            }
+            case 'enum': {
+                const opts = (p.enumOptions || []).map(String);
+                if (opts.length && typeof v === 'number') return opts[v] !== undefined ? opts[v] : String(v);
+                return String(v);
+            }
+            case 'date': return fmtDate(v);
+            case 'json': {
+                const s = typeof v === 'string' ? v : JSON.stringify(v);
+                return s.length > 40 ? s.slice(0, 40) + '…' : s;
+            }
+            default: return String(v);
+        }
+    }
+
+    function ensureConfig() { return config.productId && config.deviceName && config.token; }
+
+    async function fetchDeviceStatus() {
+        if (!ensureConfig()) {
+            $('statusDot').style.background = '#ccc';
+            $('statusText').textContent = '未连接';
+            return;
+        }
+        try {
+            const res = await fetch(api.deviceDetail + '?product_id=' + config.productId + '&device_name=' + config.deviceName, { headers: { authorization: config.token } });
+            const data = await res.json();
+            const online = data.code === 0 && data.data && (data.data.status === 1 || data.data.status === '1');
+            $('statusDot').style.background = online ? '#4caf50' : '#999';
+            $('statusText').textContent = online ? '在线' : '离线';
+            $('statusText').style.color = online ? '#2e7d32' : '#5a7a9a';
+        } catch (e) {
+            $('statusDot').style.background = '#ccc';
+            $('statusText').textContent = '连接失败';
+        }
+    }
+
+    async function fetchProperties() {
+        if (!ensureConfig() || points.length === 0) return;
+        try {
+            const res = await fetch(api.getProperty + '?product_id=' + config.productId + '&device_name=' + config.deviceName, { headers: { authorization: config.token } });
+            const data = await res.json();
+            if (data.code === 0 && Array.isArray(data.data)) {
+                data.data.forEach(function(item) {
+                    if (item && item.identifier !== undefined) {
+                        propCache[item.identifier] = item.value;
+                        recordHistory(item.identifier, item.value);
+                    }
+                });
+                saveHistBuffer();
+                checkAlerts();
+                renderCards();
+                syncHistCurrent();
+            }
+        } catch (e) {}
+    }
+
+    function setProperty(key, value) {
+        return fetch(api.setProperty, {
+            method: 'POST',
+            headers: { authorization: config.token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: config.productId, device_name: config.deviceName, params: { [key]: value } })
+        }).then(function(r) { return r.json(); });
+    }
+
+    function renderPointList() {
+        const el = $('pointList');
+        if (points.length === 0) {
+            el.innerHTML = '<div class="empty-tip"><i class="fa fa-database"></i>暂无数据点，点击上方按钮添加或导入物模型。</div>';
+            return;
+        }
+        const arr = sortedPoints();
+        el.innerHTML = arr.map(function(p, i) {
+            const m = typeMeta(p.type);
+            const badgeCls = p.mode === 'sensor' ? 'sensor' : 'controller';
+            const badgeTxt = p.mode === 'sensor' ? '传感器' : '控制器';
+            const visible = p.visible !== false;
+            return '<div class="point-item ' + (visible ? '' : 'hidden') + '">' +
+                '<span class="order-num" title="显示顺序">' + (i + 1) + '</span>' +
+                '<div class="pi-ico" style="background:' + p.color + '"><i class="fa ' + p.icon + '"></i></div>' +
+                '<div class="pi-meta">' +
+                '<div class="n-row"><span class="n">' + escapeHtml(p.name) + '</span>' +
+                '<span class="badge type">' + m.label + '</span>' +
+                '<span class="badge ' + badgeCls + '">' + badgeTxt + '</span>' +
+                (visible ? '' : '<span class="badge">首页隐藏</span>') + '</div>' +
+                '<div class="k">ID: ' + escapeHtml(p.id) + ' · 云端: ' + escapeHtml(p.cloudKey) + '</div></div>' +
+                '<div class="pi-actions">' +
+                '<div class="sort-btns">' +
+                '<button class="btn small" data-up="' + p.id + '" ' + (i === 0 ? 'disabled' : '') + ' title="上移"><i class="fa fa-arrow-up"></i></button>' +
+                '<button class="btn small" data-down="' + p.id + '" ' + (i === arr.length - 1 ? 'disabled' : '') + ' title="下移"><i class="fa fa-arrow-down"></i></button></div>' +
+                '<button class="btn small ' + (visible ? '' : 'eye-off') + '" data-eye="' + p.id + '" title="' + (visible ? '在首页隐藏' : '在首页显示') + '"><i class="fa ' + (visible ? 'fa-eye' : 'fa-eye-slash') + '"></i></button>' +
+                '<button class="btn small" data-edit="' + p.id + '" title="编辑"><i class="fa fa-pencil"></i></button>' +
+                '<button class="btn small danger" data-del="' + p.id + '" title="删除"><i class="fa fa-trash"></i></button>' +
+                '</div></div>';
+        }).join('');
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+
+    function cardHtml(p) {
+        const val = propCache[p.cloudKey];
+        const hasData = val !== undefined && val !== null && val !== '';
+        const isAlarm = !!alertActive[p.cloudKey];
+        const m = typeMeta(p.type);
+
+        if (p.mode === 'controller') {
+            const noIco = m.kind === 'bool';
+            return '<div class="card mode-controller ' + (isAlarm ? 'alarm' : '') + '" style="--accent:' + p.color + '">' +
+                (noIco ? '' : '<div class="ico"><i class="fa ' + p.icon + '"></i></div>') +
+                '<div class="cmeta"><div class="nm">' + escapeHtml(p.name) + '</div>' +
+                ((p.unit && m.kind !== 'number') ? '<div class="cunit">' + escapeHtml(p.unit) + '</div>' : '') + '</div>' +
+                buildControllerHtml(p, val) + '</div>';
+        }
+
+        const histIcon = m.plottable ? '<div class="hist-ico" data-hist="' + p.id + '" title="历史数据"><i class="fa fa-clock-o"></i></div>' : '';
+        let tag;
+        if (!hasData) tag = '<span class="tag unknown">未知</span>';
+        else if (isAlarm) tag = '<span class="tag err">异常</span>';
+        else tag = '<span class="tag ok">正常</span>';
+
+        return '<div class="card mode-sensor ' + (isAlarm ? 'alarm' : '') + '" style="--accent:' + p.color + '">' +
+            histIcon +
+            '<div class="ico"><i class="fa ' + p.icon + '"></i></div>' +
+            '<div class="nm">' + escapeHtml(p.name) + '</div>' +
+            '<div class="vrow"><span class="val" id="v_' + p.id + '">' + formatValue(val, p) + '</span>' +
+            (p.unit ? '<span class="unit">' + escapeHtml(p.unit) + '</span>' : '') + '</div>' +
+            tag + '</div>';
+    }
+
+    function updateFilterCounts() {
+        const visiblePoints = points.filter(function(p) { return p.visible !== false; });
+        const counts = { all: visiblePoints.length, sensor: 0, switch: 0, number: 0, other: 0 };
+        visiblePoints.forEach(function(p) {
+            const cat = getPointCategory(p);
+            counts[cat]++;
+        });
+        $('countAll').textContent = counts.all;
+        $('countSensor').textContent = counts.sensor;
+        $('countSwitch').textContent = counts.switch;
+        $('countNumber').textContent = counts.number;
+        $('countOther').textContent = counts.other;
+    }
+
+    function applyFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-tab').forEach(function(tab) {
+            tab.classList.toggle('active', tab.dataset.filter === filter);
+        });
+        renderCards();
+    }
+
+    function renderCards() {
+        const grid = $('cardGrid');
+        if (points.length === 0) {
+            grid.innerHTML = '<div class="empty-tip"><i class="fa fa-cubes"></i>还没有数据点。<br>点击右上角「设置」→「数据模型」添加或导入物模型。</div>';
+            return;
+        }
+        const visiblePoints = sortedPoints().filter(function(p) { return p.visible !== false; });
+        if (visiblePoints.length === 0) {
+            grid.innerHTML = '<div class="empty-tip"><i class="fa fa-eye-slash"></i>所有数据点都已设为首页隐藏。<br>可到「设置」→「数据模型」点击眼睛图标重新显示。</div>';
+            return;
+        }
+
+        updateFilterCounts();
+
+        let filteredPoints = visiblePoints;
+        if (currentFilter !== 'all') {
+            filteredPoints = visiblePoints.filter(function(p) { return getPointCategory(p) === currentFilter; });
+        }
+
+        if (filteredPoints.length === 0) {
+            const filterNames = { sensor: '传感器', switch: '开关', number: '数值调节', other: '其它控制' };
+            grid.innerHTML = '<div class="empty-tip"><i class="fa fa-filter"></i>没有' + (filterNames[currentFilter] || '') + '类型的数据点。<br>可到「设置」→「数据模型」添加。</div>';
+            return;
+        }
+
+        const sensors = filteredPoints.filter(function(p) { return p.mode === 'sensor'; });
+        const controllers = filteredPoints.filter(function(p) { return p.mode === 'controller'; });
+        const ctrlBool = controllers.filter(function(p) { return typeMeta(p.type).kind === 'bool'; });
+        const ctrlNum = controllers.filter(function(p) { return typeMeta(p.type).kind === 'number'; });
+        const ctrlOther = controllers.filter(function(p) { const k = typeMeta(p.type).kind; return k !== 'bool' && k !== 'number'; });
+
+        const groups = [];
+        if (sensors.length) groups.push({ id: 'sensor', icon: 'fa-download', title: '传感器', items: sensors, cls: 'grid' });
+        if (ctrlBool.length) groups.push({ id: 'switch', icon: 'fa-power-off', title: '开关', items: ctrlBool, cls: 'grid ctrl-grid' });
+        if (ctrlNum.length) groups.push({ id: 'number', icon: 'fa-sliders', title: '数值调节', items: ctrlNum, cls: 'grid ctrl-grid' });
+        if (ctrlOther.length) groups.push({ id: 'other', icon: 'fa-cog', title: '其它控制', items: ctrlOther, cls: 'grid ctrl-grid' });
+
+        grid.innerHTML = groups.map(function(g) {
+            const st = groupState[g.id] || (groupState[g.id] = { collapsed: false, locked: false });
+            const locked = !!st.locked;
+            const collapsed = !!st.collapsed && !locked;
+            return '<div class="group ' + (collapsed ? 'collapsed' : '') + ' ' + (locked ? 'locked' : '') + '" data-group="' + g.id + '">' +
+                '<div class="group-h"><i class="fa ' + g.icon + '"></i> ' + g.title + ' <span class="group-count">' + g.items.length + '</span>' +
+                '<span class="group-tools">' +
+                '<button type="button" class="lock-btn ' + (locked ? 'on' : '') + '" data-lock="' + g.id + '" title="' + (locked ? '已锁定，点击解锁' : '锁定（防止折叠）') + '"><i class="fa ' + (locked ? 'fa-lock' : 'fa-unlock-alt') + '"></i></button>' +
+                '<i class="fa fa-chevron-down chev"></i></span></div>' +
+                '<div class="' + g.cls + '">' + g.items.map(cardHtml).join('') + '</div></div>';
+        }).join('');
+    }
+
+    function buildControllerHtml(p, val) {
+        const m = typeMeta(p.type);
+        if (m.kind === 'bool') {
+            const hasData = val !== undefined && val !== null && val !== '';
+            const on = parseBool(val);
+            const bl = p.boolLabels;
+            let label;
+            if (!hasData) label = '未知';
+            else if (bl && bl[on]) label = bl[on];
+            else label = on ? '开' : '关';
+            return '<div class="ctrl-inner"><button type="button" class="switch-btn ' + (on ? 'on' : '') + '" data-switch="' + p.id + '" aria-label="开关"><i class="fa fa-power-off"></i><span>' + label + '</span></button></div>';
+        }
+        if (m.kind === 'enum') {
+            const opts = p.enumOptions || [];
+            const options = opts.map(function(o) {
+                return '<option value="' + escapeHtml(o) + '" ' + (String(o) === String(val) || (typeof val === 'number' && Number(o) === val) ? 'selected' : '') + '>' + escapeHtml(o) + '</option>';
+            }).join('');
+            return '<div class="ctrl-inner"><select class="select-box" data-enum="' + p.id + '">' + (options || '<option>--</option>') + '</select></div>';
+        }
+        if (m.kind === 'number') {
+            const step = stepOf(p);
+            const cur = val === undefined || val === null || val === '' ? '' : Number(val);
+            const bounds = numBounds(p);
+            const mn = bounds[0], mx = bounds[1];
+            const sv = cur === '' ? '' : Math.min(mx, Math.max(mn, cur));
+            return '<div class="ctrl-inner" style="align-items:stretch;">' +
+                '<div class="slider-val"><span class="sval" id="sv_' + p.id + '">' + (cur === '' ? '--' : fmtNumber(cur, m)) + '</span>' +
+                (p.unit ? '<span class="unit">' + escapeHtml(p.unit) + '</span>' : '') + '</div>' +
+                '<div class="stepper">' +
+                '<button type="button" class="step-btn" data-step="' + p.id + '" data-dir="-1" aria-label="减">−</button>' +
+                '<input class="range" id="inp_' + p.id + '" type="range" min="' + mn + '" max="' + mx + '" step="' + step + '" value="' + sv + '" data-range="' + p.id + '">' +
+                '<button type="button" class="step-btn" data-step="' + p.id + '" data-dir="1" aria-label="加">+</button>' +
+                '</div></div>';
+        }
+        if (m.kind === 'date') {
+            return '<div class="ctrl-inner"><div class="input-row">' +
+                '<input class="input-box" id="inp_' + p.id + '" type="datetime-local">' +
+                '<button type="button" class="send-ic" data-send="' + p.id + '" title="下发"><i class="fa fa-paper-plane"></i></button>' +
+                '</div></div>';
+        }
+        if (m.kind === 'string') {
+            return '<div class="ctrl-inner"><div class="input-row">' +
+                '<input class="input-box" id="inp_' + p.id + '" type="text" value="' + (val === undefined || val === null ? '' : escapeHtml(String(val))) + '" placeholder="输入值">' +
+                '<button type="button" class="send-ic" data-send="' + p.id + '" title="下发"><i class="fa fa-paper-plane"></i></button>' +
+                '</div></div>';
+        }
+        return '<div class="vrow"><span class="val">' + formatValue(val, p) + '</span></div>';
+    }
+
+    document.addEventListener('change', function(e) {
+        const t = e.target;
+        if (t.dataset && t.dataset.enum) {
+            const p = pointById(t.dataset.enum);
+            if (!p) return;
+            let value = t.value;
+            if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+            doSend(p, value);
+        } else if (t.dataset && t.dataset.range) {
+            const p = pointById(t.dataset.range);
+            if (!p) return;
+            let value = t.value;
+            if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+            doSend(p, value);
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        const t = e.target;
+        if (t.dataset && t.dataset.range) {
+            const p = pointById(t.dataset.range);
+            if (!p) return;
+            const el = document.getElementById('sv_' + p.id);
+            if (el) el.textContent = fmtNumber(t.value, typeMeta(p.type));
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const ic = e.target.closest('.icon-cell');
+        if (ic) {
+            currentIcon = ic.dataset.icon;
+            document.querySelectorAll('.icon-cell').forEach(function(c) { c.classList.toggle('sel', c === ic); });
+            return;
+        }
+        const cc = e.target.closest('.color-cell');
+        if (cc) {
+            currentColor = cc.dataset.color;
+            document.querySelectorAll('.color-cell').forEach(function(c) { c.classList.toggle('sel', c === cc); });
+            return;
+        }
+        const ft = e.target.closest('.filter-tab');
+        if (ft) {
+            applyFilter(ft.dataset.filter);
+            return;
+        }
+        const t = e.target.closest('[data-switch], [data-send], [data-hist], [data-edit], [data-del], [data-up], [data-down], [data-eye], [data-step]');
+        if (!t) return;
+
+        if (t.dataset.switch !== undefined) {
+            const p = pointById(t.dataset.switch);
+            if (!p) return;
+            const newVal = !parseBool(propCache[p.cloudKey]);
+            doSend(p, newVal);
+        } else if (t.dataset.step !== undefined) {
+            const p = pointById(t.dataset.step);
+            if (!p) return;
+            const m = typeMeta(p.type);
+            const bounds = numBounds(p);
+            const mn = bounds[0], mx = bounds[1];
+            const step = stepOf(p);
+            const inp = $('inp_' + p.id);
+            if (!inp) return;
+            const curV = (inp.value === '' || inp.value == null) ? 0 : Number(inp.value);
+            let nv = (isNaN(curV) ? 0 : curV) + Number(t.dataset.dir) * step;
+            nv = Math.round(nv * 1e6) / 1e6;
+            nv = Math.min(mx, Math.max(mn, nv));
+            inp.value = nv;
+            const el = $('sv_' + p.id);
+            if (el) el.textContent = fmtNumber(nv, m);
+            doSend(p, nv);
+        } else if (t.dataset.send !== undefined) {
+            const p = pointById(t.dataset.send);
+            if (!p) return;
+            const m = typeMeta(p.type);
+            let value = $('inp_' + p.id).value;
+            if (m.kind === 'number') value = Number(value);
+            if (m.kind === 'date') value = value ? new Date(value).toISOString() : '';
+            doSend(p, value);
+        } else if (t.dataset.hist !== undefined) {
+            openHistory(t.dataset.hist);
+        } else if (t.dataset.eye !== undefined) {
+            const p = pointById(t.dataset.eye);
+            if (!p) return;
+            p.visible = p.visible === false;
+            persistPoints();
+            renderPointList();
+            renderCards();
+        } else if (t.dataset.edit !== undefined) {
+            openPointForm(t.dataset.edit);
+        } else if (t.dataset.del !== undefined) {
+            deletePoint(t.dataset.del);
+        } else if (t.dataset.up !== undefined) {
+            movePoint(t.dataset.up, -1);
+        } else if (t.dataset.down !== undefined) {
+            movePoint(t.dataset.down, 1);
+        }
+    });
+
+    function doSend(p, value) {
+        const prev = propCache[p.cloudKey];
+        propCache[p.cloudKey] = value;
+        renderCards();
+        if (!ensureConfig()) {
+            showToast('本地演示：未配置云平台');
+            return;
+        }
+        setProperty(p.cloudKey, value).then(function(data) {
+            if (data.code === 0) {
+                showToast('指令已下发 ✓');
+                setTimeout(fetchProperties, 1500);
+            } else {
+                propCache[p.cloudKey] = prev;
+                renderCards();
+                showToast('下发失败：' + (data.msg || data.code));
+            }
+        }).catch(function() {
+            propCache[p.cloudKey] = prev;
+            renderCards();
+            showToast('下发超时');
+        });
+    }
+
+    function movePoint(id, dir) {
+        const arr = sortedPoints();
+        const idx = arr.findIndex(function(p) { return p.id === id; });
+        const target = idx + dir;
+        if (idx < 0 || target < 0 || target >= arr.length) return;
+        const tmp = arr[idx]; arr[idx] = arr[target]; arr[target] = tmp;
+        arr.forEach(function(p, i) { p.order = i; });
+        persistPoints();
+        renderPointList();
+        renderCards();
+    }
+
+    function checkAlerts() {
+        let triggered = [];
+        points.forEach(function(p) {
+            if (p.mode !== 'sensor') return;
+            const m = typeMeta(p.type);
+            if (m.kind !== 'number') return;
+            const v = propCache[p.cloudKey];
+            if (v === undefined || v === null || v === '') return;
+            const n = Number(v);
+            const low = p.min !== null && p.min !== undefined && p.min !== '' ? Number(p.min) : null;
+            const high = p.max !== null && p.max !== undefined && p.max !== '' ? Number(p.max) : null;
+            let over = false, note = '';
+            if (low !== null && n < low) { over = true; note = '低于下限 ' + low; }
+            else if (high !== null && n > high) { over = true; note = '超过上限 ' + high; }
+
+            if (over && !alertActive[p.cloudKey]) {
+                alertActive[p.cloudKey] = true;
+                const rec = { time: Date.now(), name: p.name, cloudKey: p.cloudKey, value: n, note: note };
+                alerts.unshift(rec);
+                persistAlerts();
+                triggered.push(rec);
+            } else if (!over && alertActive[p.cloudKey]) {
+                alertActive[p.cloudKey] = false;
+            }
+        });
+        renderAlertBanner();
+        renderAlertList();
+        if (triggered.length) showToast('警报！' + triggered.map(function(t) { return t.name; }).join('、'));
+    }
+
+    function renderAlertBanner() {
+        const active = Object.keys(alertActive).filter(function(k) { return alertActive[k]; });
+        const b = $('alertBanner');
+        if (active.length) {
+            const names = active.map(function(k) { return (pointByKey(k) || {}).name || k; });
+            b.style.display = 'flex';
+            $('alertBannerText').textContent = '传感器异常：' + names.join('、');
+        } else {
+            b.style.display = 'none';
+        }
+    }
+
+    function renderAlertList() {
+        const el = $('alertList');
+        if (alerts.length === 0) { el.innerHTML = '<div class="empty-tip">暂无报警记录</div>'; return; }
+        el.innerHTML = alerts.map(function(a) {
+            return '<div class="alert-item"><div>' +
+                '<div class="a-t">' + escapeHtml(a.name) + '</div>' +
+                '<div class="a-d">' + escapeHtml(a.note) + ' · 数值 ' + a.value + '</div></div>' +
+                '<div class="a-d">' + fmtDate(a.time) + '</div></div>';
+        }).join('');
+    }
+
+    function histTimeLabel(ms, showDate) {
+        const d = new Date(ms);
+        const pad = function(n) { return String(n).padStart(2, '0'); };
+        if (showDate) return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        return pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    async function fetchHistory(id, range) {
+        const p = pointById(id);
+        if (!p || !ensureConfig()) return null;
+        const end = Date.now(), start = end - (range || 86400000);
+        const showDate = (range || 86400000) > 86400000;
+        try {
+            const res = await fetch(api.getHistory + '?product_id=' + config.productId + '&device_name=' + config.deviceName + '&identifier=' + p.cloudKey + '&start_time=' + start + '&end_time=' + end + '&limit=100', { headers: { authorization: config.token } });
+            const data = await res.json();
+            if (data.code === 0 && data.data && data.data.list) {
+                const list = data.data.list.sort(function(a, b) { return Number(a.time) - Number(b.time); });
+                return {
+                    times: list.map(function(i) { return histTimeLabel(Number(i.time), showDate); }),
+                    values: list.map(function(i) { return Number(i.value); }),
+                    raw: list.map(function(i) { return { time: Number(i.time), value: i.value }; })
+                };
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function localHistory(id, range) {
+        const p = pointById(id);
+        if (!p) return null;
+        const start = Date.now() - (range || 86400000);
+        const list = (histBuffer[p.cloudKey] || []).filter(function(x) { return x && x.t >= start; }).sort(function(a, b) { return a.t - b.t; });
+        if (!list.length) return null;
+        const showDate = (range || 86400000) > 86400000;
+        return {
+            times: list.map(function(x) { return histTimeLabel(x.t, showDate); }),
+            values: list.map(function(x) { return Number(x.v); }),
+            raw: list.map(function(x) { return { time: x.t, value: x.v }; }),
+            local: true
+        };
+    }
+
+    function openHistory(id) {
+        const p = pointById(id);
+        if (!p) return;
+        currentHistId = id;
+        currentHistRange = 86400000;
+        if (chartInst) { chartInst.dispose(); chartInst = null; }
+        window.histChartRaw = null;
+        $('histTitle').textContent = p.name + ' - 历史数据';
+        $('histBadge').textContent = p.cloudKey + ' · ' + (p.unit || typeMeta(p.type).label);
+        $('histSource').textContent = '';
+        syncHistCurrent();
+        document.querySelectorAll('.hr-btn').forEach(function(b) { b.classList.toggle('active', Number(b.dataset.range) === currentHistRange); });
+        $('historyModal').style.display = 'flex';
+        $('exportSection').classList.add('open');
+        updateExportDataCount(null);
+        loadHistory();
+    }
+
+    function loadHistory() {
+        if (!currentHistId) return;
+        const p = pointById(currentHistId);
+        if (!p) return;
+        $('chartTip').textContent = '加载中...';
+        fetchHistory(currentHistId, currentHistRange).then(function(res) {
+            const final = (res && res.values && res.values.length) ? res : localHistory(currentHistId, currentHistRange);
+            window.histChartRaw = final ? final.raw : null;
+            const el = $('histChart');
+            if (chartInst) { chartInst.dispose(); chartInst = null; }
+            if (!final || !final.values.length) {
+                $('chartTip').textContent = '暂无数据';
+                $('histSource').textContent = '';
+                updateExportDataCount(null);
+                return;
+            }
+            $('chartTip').textContent = '';
+            $('histSource').textContent = final.local ? '本地缓存数据' : 'OneNET 云端数据';
+            chartInst = echarts.init(el);
+            const dark = document.body.dataset.theme === 'dark';
+            const axisColor = dark ? '#93a3bd' : '#5a7a9a';
+            const splitColor = dark ? '#2a3550' : '#e8f0f7';
+            chartInst.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '10%', top: '8%', containLabel: true },
+                xAxis: { type: 'category', data: final.times, axisLine: { lineStyle: { color: splitColor } }, axisLabel: { color: axisColor } },
+                yAxis: { type: 'value', splitLine: { lineStyle: { color: splitColor } }, axisLabel: { color: axisColor } },
+                series: [{
+                    type: 'line', data: final.values, smooth: true,
+                    lineStyle: { width: 2, color: p.color }, itemStyle: { color: p.color },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: p.color + '30' }, { offset: 1, color: p.color + '05' }]) }
+                }]
+            });
+            chartInst.resize();
+        });
+    }
+
+    function closeHistory() {
+        $('historyModal').style.display = 'none';
+        if (chartInst) { chartInst.dispose(); chartInst = null; }
+        currentHistId = null;
+        window.histChartRaw = null;
+    }
+
+    function syncHistCurrent() {
+        if (!currentHistId) return;
+        const p = pointById(currentHistId);
+        if (!p) return;
+        const v = propCache[p.cloudKey];
+        $('histCur').textContent = '当前值：' + formatValue(v, p) + (p.unit ? ' ' + p.unit : '');
+    }
+
+    function updateExportDataCount(data) {
+        const el = $('exportDataCount');
+        if (data && data.length > 0) {
+            el.textContent = '共 ' + data.length + ' 条数据可导出';
+        } else {
+            el.textContent = '选择时间范围后点击导出';
+        }
+    }
+
+    function formatRangeLabel(range) {
+        if (range === 3600000) return '1小时';
+        if (range === 86400000) return '1天';
+        if (range === 604800000) return '7天';
+        return '';
+    }
+
+    async function fetchAllHistoryData(p, startTime, endTime) {
+        const pageSize = 1000;
+        let allData = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            try {
+                const url = api.getHistory + '?product_id=' + config.productId + 
+                    '&device_name=' + config.deviceName + 
+                    '&identifier=' + p.cloudKey + 
+                    '&start_time=' + startTime + 
+                    '&end_time=' + endTime + 
+                    '&limit=' + pageSize + 
+                    '&page=' + page;
+
+                const res = await fetch(url, { headers: { authorization: config.token } });
+                const data = await res.json();
+
+                if (data.code === 0 && data.data && data.data.list && data.data.list.length > 0) {
+                    allData = allData.concat(data.data.list);
+                    if (data.data.list.length < pageSize) {
+                        hasMore = false;
+                    } else {
+                        page++;
+                        if (allData.length >= 100000) hasMore = false;
+                    }
+                } else {
+                    hasMore = false;
+                }
+            } catch (e) {
+                console.error('获取历史数据失败:', e);
+                hasMore = false;
+            }
+        }
+
+        return allData;
+    }
+
+    async function fetchExportDataWithRange() {
+        if (!currentHistId) return null;
+        const p = pointById(currentHistId);
+        if (!p || !ensureConfig()) return null;
+
+        const endTime = Date.now();
+        const startTime = endTime - currentExportRange;
+
+        showToast('正在获取' + formatRangeLabel(currentExportRange) + '数据...');
+
+        try {
+            const cloudData = await fetchAllHistoryData(p, startTime, endTime);
+            if (cloudData && cloudData.length > 0) {
+                return cloudData.sort(function(a, b) { return Number(a.time) - Number(b.time); }).map(function(item) {
+                    return { time: Number(item.time), value: item.value };
+                });
+            }
+        } catch (e) {
+            console.error('云端获取失败:', e);
+        }
+
+        const localList = (histBuffer[p.cloudKey] || []).filter(function(x) {
+            return x && x.t >= startTime && x.t <= endTime;
+        }).sort(function(a, b) { return a.t - b.t; });
+
+        return localList.map(function(x) { return { time: x.t, value: x.v }; });
+    }
+
+    function buildCsvContent(pointName, unit, rawData) {
+        let csv = '\uFEFF';
+        csv += '时间戳,时间,' + pointName + (unit ? '(' + unit + ')' : '') + '\n';
+        rawData.forEach(function(row) {
+            const d = new Date(row.time);
+            const pad = function(n) { return String(n).padStart(2, '0'); };
+            const fmtTime = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+            csv += row.time + ',' + fmtTime + ',' + row.value + '\n';
+        });
+        return csv;
+    }
+
+    function buildJsonContent(pointName, unit, rawData, p) {
+        const obj = {
+            exportTime: new Date().toISOString(),
+            pointInfo: { name: pointName, id: p.id, cloudKey: p.cloudKey, unit: unit || '', dataType: p.type },
+            dataCount: rawData.length,
+            data: rawData.map(function(item) {
+                return { time: new Date(item.time).toISOString(), timestamp: item.time, value: item.value };
+            })
+        };
+        return JSON.stringify(obj, null, 2);
+    }
+
+    function smartCopyText(text) {
+        return new Promise(function(resolve) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(function() { resolve(true); })
+                    .catch(function() { resolve(false); });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                let ok = false;
+                try { ok = document.execCommand('copy'); } catch(e) { ok = false; }
+                document.body.removeChild(ta);
+                resolve(ok);
+            }
+        });
+    }
+
+    function downloadFile(filename, content, mimeType) {
+        // 安卓IOT_Application壳子桥
+        if (window.AndroidApp && typeof window.AndroidApp.shareCsv === 'function' && mimeType === 'text/csv') {
+            window.AndroidApp.shareCsv(filename, content);
+            showToast('已调用安卓分享');
+            return true;
+        }
+
+        // 判断PakePlus / Tauri / WebView APP环境
+        const isTauri = !!window.__TAURI__;
+        const isWebViewApp = navigator.userAgent.toLowerCase().indexOf('android') > -1 && 
+                            navigator.userAgent.toLowerCase().indexOf('chrome/') === -1;
+
+        if (isTauri || isWebViewApp) {
+            // APP环境：复制到剪贴板
+            smartCopyText(content).then(function(success) {
+                if (success) {
+                    showToast('✅ 内容已复制到剪贴板！\n请新建文件，粘贴保存为：' + filename);
+                } else {
+                    showToast('❌ 复制失败，请手动复制');
+                }
+            });
+            return true;
+        }
+
+        // 普通浏览器环境：Blob下载
+        try {
+            const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1500);
+            console.log('文件下载已触发:', filename);
+            return true;
+        } catch (e) {
+            console.error('Blob下载失败:', e);
+            return false;
+        }
+    }
+
+    async function handleExportCsv() {
+        const btn = $('exportCsvBtn');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        try {
+            if (!currentHistId) { showToast('未选中数据点'); return; }
+            const p = pointById(currentHistId);
+            if (!p) return;
+
+            const rawData = await fetchExportDataWithRange();
+            if (!rawData || rawData.length === 0) {
+                showToast('该时间段暂无数据');
+                return;
+            }
+
+            const csv = buildCsvContent(p.name, p.unit, rawData);
+            const rangeLabel = formatRangeLabel(currentExportRange);
+            const fileName = p.name + '_' + rangeLabel + '_' + Date.now() + '.csv';
+            downloadFile(fileName, csv, 'text/csv');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function handleExportJson() {
+        const btn = $('exportJsonBtn');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        try {
+            if (!currentHistId) { showToast('未选中数据点'); return; }
+            const p = pointById(currentHistId);
+            if (!p) return;
+
+            const rawData = await fetchExportDataWithRange();
+            if (!rawData || rawData.length === 0) {
+                showToast('该时间段暂无数据');
+                return;
+            }
+
+            const json = buildJsonContent(p.name, p.unit, rawData, p);
+            const rangeLabel = formatRangeLabel(currentExportRange);
+            const fileName = p.name + '_' + rangeLabel + '_' + Date.now() + '.json';
+            downloadFile(fileName, json, 'application/json');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function bindExportEvents() {
+        $('exportHeader').addEventListener('click', function() {
+            $('exportSection').classList.toggle('open');
+        });
+
+        $('exportRangeSelect').addEventListener('click', function(e) {
+            const btn = e.target.closest('.export-range-btn');
+            if (!btn) return;
+            currentExportRange = Number(btn.dataset.exportRange);
+            document.querySelectorAll('.export-range-btn').forEach(function(b) {
+                b.classList.toggle('active', b === btn);
+            });
+            updateExportDataCount(null);
+            showToast('已选择' + formatRangeLabel(currentExportRange) + '数据');
+        });
+
+        $('exportCsvBtn').addEventListener('click', handleExportCsv);
+        $('exportJsonBtn').addEventListener('click', handleExportJson);
+    }
+
+    function fillTypeOptions(mode, selected) {
+        const sel = $('pType');
+        sel.innerHTML = Object.keys(DATA_TYPES).map(function(t) {
+            const m = DATA_TYPES[t];
+            if (mode === 'controller' && !m.writable) return '';
+            return '<option value="' + t + '" ' + (t === selected ? 'selected' : '') + '>' + m.label + '</option>';
+        }).join('');
+    }
+
+    function openPointForm(id, presetMode) {
+        editingId = id || null;
+        const p = id ? pointById(id) : null;
+        const mode = p ? p.mode : (presetMode || 'sensor');
+        $('pMode').value = mode;
+        fillTypeOptions(mode, p ? p.type : (mode === 'controller' ? 'bool' : 'float'));
+        $('pId').value = p ? p.id : '';
+        $('pName').value = p ? p.name : '';
+        $('pKey').value = p ? p.cloudKey : '';
+        $('pUnit').value = p ? (p.unit || '') : '';
+        $('pOrder').value = p ? (p.order !== undefined && p.order !== null ? p.order : nextOrder()) : nextOrder();
+        $('pVisible').checked = p ? (p.visible !== false) : true;
+        currentIcon = p ? p.icon : 'fa-thermometer-half';
+        currentColor = p ? p.color : '#3399dd';
+        renderIconGrid(currentIcon);
+        renderColorGrid(currentColor);
+        $('pEnum').value = p && p.enumOptions ? p.enumOptions.join(',') : '';
+        $('pMin').value = p && p.min !== undefined && p.min !== null && p.min !== '' ? p.min : '';
+        $('pMax').value = p && p.max !== undefined && p.max !== null && p.max !== '' ? p.max : '';
+        $('pStep').value = p && p.step !== undefined && p.step !== null && p.step !== '' ? p.step : '';
+        applyTypeVisibility();
+        $('pointModalTitle').textContent = id ? '编辑数据点' : '添加数据点';
+        $('pointModal').style.display = 'flex';
+    }
+
+    function closePointForm() { $('pointModal').style.display = 'none'; }
+
+    function applyTypeVisibility() {
+        const t = $('pType').value;
+        const mode = $('pMode').value;
+        const m = DATA_TYPES[t];
+        $('enumField').style.display = (m.kind === 'enum') ? 'block' : 'none';
+        $('thresholdField').style.display = (m.kind === 'number') ? 'block' : 'none';
+        const isSensor = mode === 'sensor';
+        $('pMinLabel').textContent = isSensor ? '报警下限（可选）' : '最小值（可选）';
+        $('pMaxLabel').textContent = isSensor ? '报警上限（可选）' : '最大值（可选）';
+        $('pMin').placeholder = isSensor ? '留空不报警' : '留空默认 0';
+        $('pMax').placeholder = isSensor ? '留空不报警' : '留空默认 100';
+        $('stepField').style.display = (m.kind === 'number' && !isSensor) ? 'block' : 'none';
+    }
+
+    function savePoint() {
+        const id = $('pId').value.trim();
+        const name = $('pName').value.trim();
+        const key = $('pKey').value.trim();
+        const type = $('pType').value;
+        const mode = $('pMode').value;
+        if (!id || !name || !key) { showToast('请填写完整（ID/名称/CloudKey）'); return; }
+        if (!editingId && pointById(id)) { showToast('内部 ID 已存在'); return; }
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(id)) { showToast('ID 仅允许字母/数字/下划线，且以字母开头'); return; }
+        const m = typeMeta(type);
+        let enumOptions = [];
+        if (m.kind === 'enum') {
+            enumOptions = $('pEnum').value.split(/[,，]/).map(function(s) { return s.trim(); }).filter(Boolean);
+        }
+        const orderVal = parseInt($('pOrder').value, 10);
+        const order = isNaN(orderVal) ? nextOrder() : orderVal;
+        const existing = editingId ? points.find(function(x) { return x.id === editingId; }) : null;
+        const obj = {
+            id: id, name: name, cloudKey: key, type: type, mode: mode,
+            unit: $('pUnit').value.trim(),
+            icon: currentIcon,
+            color: currentColor,
+            order: order,
+            visible: $('pVisible').checked,
+            enumOptions: enumOptions,
+            min: m.kind === 'number' ? ($('pMin').value === '' ? null : Number($('pMin').value)) : null,
+            max: m.kind === 'number' ? ($('pMax').value === '' ? null : Number($('pMax').value)) : null,
+            step: m.kind === 'number' ? ($('pStep').value === '' ? null : Number($('pStep').value)) : null,
+            boolLabels: (m.kind === 'bool' && existing && existing.boolLabels) ? existing.boolLabels : null
+        };
+        if (editingId) {
+            const idx = points.findIndex(function(x) { return x.id === editingId; });
+            if (idx >= 0) points[idx] = obj;
+        } else {
+            points.push(obj);
+        }
+        renumber();
+        persistPoints();
+        renderPointList();
+        renderCards();
+        closePointForm();
+        showToast('数据点已保存');
+        fetchProperties();
+    }
+
+    function deletePoint(id) {
+        if (!confirm('确定删除该数据点？')) return;
+        points = points.filter(function(p) { return p.id !== id; });
+        delete propCache[id];
+        renumber();
+        persistPoints();
+        renderPointList();
+        renderCards();
+        showToast('已删除');
+    }
+
+    function normalizeType(t) {
+        const s = String(t || '').trim();
+        const alias = { bitmap: 'bitMap', bit_map: 'bitMap', long: 'int64', integer: 'int32' };
+        return alias[s.toLowerCase()] || s;
+    }
+
+    function sanitizeId(identifier, usedIds) {
+        let base = String(identifier || '').replace(/[^A-Za-z0-9_]/g, '_');
+        if (!/^[A-Za-z_]/.test(base)) base = 'p_' + base;
+        let id = base, n = 2;
+        while (usedIds.has(id)) { id = base + '_' + n++; }
+        usedIds.add(id);
+        return id;
+    }
+
+    function suggestIcon(name, type) {
+        const n = String(name || '');
+        if (/温度|temp/i.test(n)) return 'fa-thermometer-half';
+        if (/湿度|水分|humi|moist/i.test(n)) return 'fa-tint';
+        if (/电压|volt/i.test(n)) return 'fa-battery-full';
+        if (/电流|curr|amp/i.test(n)) return 'fa-bolt';
+        if (/光照|亮度|light|lux/i.test(n)) return 'fa-sun-o';
+        if (/酸碱|pH/i.test(n)) return 'fa-balance-scale';
+        if (/阀门|valve|开关|继电器|relay|泵|pump/i.test(n)) return 'fa-power-off';
+        if (/门|door/i.test(n)) return 'fa-home';
+        if (/模式|档位|mode|level|gear/i.test(n)) return 'fa-gears';
+        if (/转速|速度|speed|rpm|电机|马达/i.test(n)) return 'fa-tachometer';
+        if (/电导|ec|盐分|盐|salt/i.test(n)) return 'fa-flask';
+        if (/氮/i.test(n)) return 'fa-leaf';
+        if (/磷/i.test(n)) return 'fa-pagelines';
+        if (/钾/i.test(n)) return 'fa-tree';
+        const kind = typeMeta(type).kind;
+        switch (kind) {
+            case 'bool': return 'fa-power-off';
+            case 'enum': return 'fa-gears';
+            case 'number': return 'fa-tachometer';
+            case 'string': return 'fa-font';
+            case 'date': return 'fa-clock-o';
+            case 'json': return 'fa-code';
+            default: return 'fa-cube';
+        }
+    }
+
+    function extractEnumOptions(specs) {
+        if (Array.isArray(specs)) {
+            return specs.map(function(s) {
+                if (s == null) return '';
+                if (typeof s === 'object') return (s.name != null ? s.name : (s.value != null ? s.value : ''));
+                return String(s);
+            }).filter(function(x) { return x !== ''; });
+        }
+        if (specs && typeof specs === 'object') {
+            return Object.values(specs).map(function(v) { return String(v); }).filter(function(v) { return v !== '[object Object]' && v !== ''; });
+        }
+        return [];
+    }
+
+    function importModel(text) {
+        let data;
+        try { data = JSON.parse(text); }
+        catch (e) { showToast('JSON 解析失败，请检查内容'); return; }
+        const props = Array.isArray(data) ? data : (data && Array.isArray(data.properties) ? data.properties : null);
+        if (!props) { showToast('未找到 properties 列表，请确认是 OneNet 物模型导出文件'); return; }
+        const usedIds = new Set(points.map(function(p) { return p.id; }));
+        const byKey = {};
+        points.forEach(function(p) { byKey[p.cloudKey] = p; });
+        let baseOrder = nextOrder();
+        let added = 0, updated = 0;
+        props.forEach(function(prop, idx) {
+            if (!prop || !prop.identifier) return;
+            const type = normalizeType(prop.dataType && prop.dataType.type);
+            if (!DATA_TYPES[type]) return;
+            const specs = (prop.dataType && prop.dataType.specs) || {};
+            const m = DATA_TYPES[type];
+            const mode = (prop.accessMode === 'r') ? 'sensor' : 'controller';
+            const obj = {
+                id: sanitizeId(prop.identifier, usedIds),
+                name: prop.name || prop.identifier,
+                cloudKey: prop.identifier,
+                type: type, mode: mode,
+                unit: (m.kind === 'number' && specs.unit) ? String(specs.unit) : '',
+                icon: suggestIcon(prop.name, type),
+                color: COLORS[idx % COLORS.length],
+                order: baseOrder + added,
+                enumOptions: (m.kind === 'enum') ? extractEnumOptions(specs) : [],
+                boolLabels: (m.kind === 'bool' && specs && typeof specs === 'object' && (specs['true'] != null || specs['false'] != null))
+                    ? { true: specs['true'] != null ? String(specs['true']) : '', false: specs['false'] != null ? String(specs['false']) : '' }
+                    : null,
+                min: (m.kind === 'number' && specs.min != null && specs.min !== '') ? Number(specs.min) : null,
+                max: (m.kind === 'number' && specs.max != null && specs.max !== '') ? Number(specs.max) : null,
+                step: (m.kind === 'number' && specs.step != null && specs.step !== '') ? Number(specs.step) : null
+            };
+            const existing = byKey[obj.cloudKey];
+            if (existing) {
+                obj.id = existing.id;
+                obj.icon = existing.icon;
+                obj.color = existing.color;
+                obj.order = existing.order;
+                const ei = points.findIndex(function(x) { return x.id === existing.id; });
+                if (ei >= 0) points[ei] = obj;
+                updated++;
+            } else {
+                points.push(obj);
+                byKey[obj.cloudKey] = obj;
+                added++;
+            }
+        });
+        if (data && data.profile && data.profile.productId && !config.productId) {
+            config.productId = String(data.profile.productId);
+            save(STORE.config, config);
+            $('inputProductId').value = config.productId;
+        }
+        renumber();
+        persistPoints();
+        renderPointList();
+        renderCards();
+        closeImportModal();
+        showToast('导入完成：新增 ' + added + '，更新 ' + updated);
+        fetchProperties();
+    }
+
+    function closeImportModal() { $('importModal').style.display = 'none'; }
+
+    function bindEvents() {
+        $('goSettingsBtn').onclick = function() { switchPage('settingsPage'); };
+        $('backHomeBtn').onclick = function() { switchPage('homePage'); };
+        $('refreshBtn').onclick = function() { fetchDeviceStatus(); fetchProperties(); showToast('已刷新'); };
+
+        $('filterTabs').addEventListener('click', function(e) {
+            const tab = e.target.closest('.filter-tab');
+            if (!tab) return;
+            applyFilter(tab.dataset.filter);
+        });
+
+        $('cardGrid').addEventListener('click', function(e) {
+            const lockBtn = e.target.closest('.lock-btn');
+            if (lockBtn) {
+                const id = lockBtn.dataset.lock;
+                const st = groupState[id] || (groupState[id] = { collapsed: false, locked: false });
+                st.locked = !st.locked;
+                if (st.locked) st.collapsed = false;
+                persistGroups();
+                renderCards();
+                return;
+            }
+            const head = e.target.closest('.group-h');
+            if (head) {
+                const group = head.closest('.group');
+                if (!group) return;
+                const id = group.dataset.group;
+                const st = groupState[id] || (groupState[id] = { collapsed: false, locked: false });
+                if (st.locked) { showToast('该分组已锁定，无法折叠'); return; }
+                st.collapsed = !st.collapsed;
+                persistGroups();
+                renderCards();
+            }
+        });
+
+        $('saveConfigBtn').onclick = function() {
+            const productId = $('inputProductId').value.trim();
+            const deviceName = $('inputDeviceName').value.trim();
+            const token = $('inputToken').value.trim();
+            if (!productId || !deviceName || !token) { showToast('请填写完整的平台参数'); return; }
+            config = Object.assign({}, config, { productId: productId, deviceName: deviceName, token: token });
+            save(STORE.config, config);
+            $('deviceNameDisplay').textContent = deviceName;
+            showToast('保存成功，正在连接...');
+            fetchDeviceStatus();
+            fetchProperties();
+            setTimeout(function() { switchPage('homePage'); }, 600);
+        };
+
+        $('clearConfigBtn').onclick = function() {
+            localStorage.removeItem(STORE.config);
+            config = { appTitle: config.appTitle || '万能配置台', productId: '', deviceName: '', token: '' };
+            $('deviceNameDisplay').textContent = '未配置';
+            $('inputProductId').value = $('inputDeviceName').value = $('inputToken').value = '';
+            showToast('配置已清除');
+        };
+
+        $('inputAppTitle').addEventListener('input', function() {
+            const v = this.value.slice(0, 8);
+            this.value = v;
+            const title = v.trim() || '万能配置台';
+            config.appTitle = title;
+            save(STORE.config, config);
+            $('appTitleText').textContent = title;
+        });
+
+        $('inputDefaultFilter').addEventListener('change', function() {
+            homeFilterSettings.defaultFilter = this.value;
+            persistHomeFilter();
+            currentFilter = this.value;
+            applyFilter(currentFilter);
+            showToast('已保存默认分类');
+        });
+
+        $('inputShowFilterTabs').addEventListener('change', function() {
+            homeFilterSettings.showFilterTabs = this.checked;
+            persistHomeFilter();
+            $('filterTabs').style.display = this.checked ? 'flex' : 'none';
+            showToast(this.checked ? '已显示筛选标签' : '已隐藏筛选标签');
+        });
+
+        $('addSensorBtn').onclick = function() { openPointForm(null, 'sensor'); };
+        $('addControllerBtn').onclick = function() { openPointForm(null, 'controller'); };
+        $('importBtn').onclick = function() {
+            $('importText').value = '';
+            $('importFileInput').value = '';
+            $('importModal').style.display = 'flex';
+        };
+        $('importModalClose').onclick = closeImportModal;
+        $('importCancelBtn').onclick = closeImportModal;
+        $('importModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeImportModal(); });
+        $('importParseBtn').onclick = function() {
+            const text = $('importText').value.trim();
+            if (!text) { showToast('请先粘贴 JSON 或选择文件'); return; }
+            importModel(text);
+        };
+        $('importFileInput').addEventListener('change', function(e) {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function() { $('importText').value = reader.result; };
+            reader.readAsText(f, 'utf-8');
+        });
+
+        $('pointSaveBtn').onclick = savePoint;
+        $('pointCancelBtn').onclick = closePointForm;
+        $('pointModalClose').onclick = closePointForm;
+        $('pointModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closePointForm(); });
+        $('pMode').onchange = function() { fillTypeOptions($('pMode').value, 'bool'); applyTypeVisibility(); };
+        $('pType').onchange = applyTypeVisibility;
+
+        $('histClose').onclick = closeHistory;
+        $('historyModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeHistory(); });
+        $('histRanges').addEventListener('click', function(e) {
+            const b = e.target.closest('.hr-btn');
+            if (!b) return;
+            currentHistRange = Number(b.dataset.range);
+            document.querySelectorAll('.hr-btn').forEach(function(x) { x.classList.toggle('active', Number(x.dataset.range) === currentHistRange); });
+            loadHistory();
+        });
+
+        $('clearAlertsBtn').onclick = function() {
+            alerts = [];
+            persistAlerts();
+            renderAlertList();
+            showToast('已清空');
+        };
+
+        $('resetBtn').onclick = function() {
+            if (!confirm('将清除所有配置、数据点和报警记录，确定恢复默认？')) return;
+            localStorage.removeItem(STORE.config);
+            localStorage.removeItem(STORE.points);
+            localStorage.removeItem(STORE.alerts);
+            localStorage.removeItem(STORE.homeFilter);
+            location.reload();
+        };
+
+        document.querySelectorAll('.sect-h').forEach(function(h) {
+            h.addEventListener('click', function() { h.parentElement.classList.toggle('open'); });
+        });
+
+        document.querySelectorAll('.theme-opt').forEach(function(o) {
+            o.addEventListener('click', function() { applyTheme(o.dataset.theme); });
+        });
+
+        bindExportEvents();
+    }
+
+    function init() {
+        loadAll();
+        applyTheme(load(STORE.theme, 'default'));
+        const appTitle = (config.appTitle || '万能配置台').slice(0, 8);
+        $('appTitleText').textContent = appTitle;
+        $('inputAppTitle').value = config.appTitle === '万能配置台' ? '' : (config.appTitle || '');
+        $('deviceNameDisplay').textContent = config.deviceName || '未配置';
+        $('inputProductId').value = config.productId || '';
+        $('inputDeviceName').value = config.deviceName || '';
+        $('inputToken').value = config.token || '';
+        $('inputDefaultFilter').value = homeFilterSettings.defaultFilter;
+        $('inputShowFilterTabs').checked = homeFilterSettings.showFilterTabs;
+        $('filterTabs').style.display = homeFilterSettings.showFilterTabs ? 'flex' : 'none';
+        currentFilter = homeFilterSettings.defaultFilter;
+        renderPointList();
+        renderAlertList();
+        renderCards();
+        bindEvents();
+        fetchDeviceStatus();
+        fetchProperties();
+        refreshTimer = setInterval(function() { fetchDeviceStatus(); fetchProperties(); }, 10000);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+</body>
+</html>
